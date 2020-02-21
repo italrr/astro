@@ -1,5 +1,5 @@
-#ifndef ASTRO_TOOL_LOG_HPP
-    #define ASTRO_TOOL_LOG_HPP
+#ifndef ASTRO_LOG_HPP
+    #define ASTRO_LOG_HPP
 
     #include "Type.hpp"
 

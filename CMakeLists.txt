@@ -1,0 +1,30 @@
+cmake_minimum_required(VERSION 2.6)
+
+project(astro CXX C)
+
+set(CMAKE_C_FLAGS "-g")
+set(CMAKE_CXX_FLAGS "-std=c++11 -g")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/builds/cmake)
+
+# src
+set (astro_src
+    src/engine/Graphics.cpp
+    src/engine/render/OpenGL.cpp
+    src/engine/render/Vulkan.cpp
+    src/engine/Core.cpp
+    src/engine/common/Log.cpp
+    src/engine/common/Tools.cpp    
+    src/engine/common/Job.cpp)
+
+add_library(astro_bin ${astro_src})
+
+IF(MINGW)
+	target_link_libraries(astro_bin -m64 -lglfw3 -pthread -lgdi32 -lopengl32 -lvulkan-1)
+ENDIF(MINGW)
+
+IF(APPLE)
+	target_link_libraries(astro_bin -lglfw3 -pthread -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo -lvulkan-1)
+ENDIF(APPLE)
+
+add_executable(astro src/main.cpp)
+target_link_libraries(astro astro_bin)
