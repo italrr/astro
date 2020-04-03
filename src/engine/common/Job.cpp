@@ -226,6 +226,7 @@ void __ASTRO_update_job(){
 
 astro::Job::Job(){
     hookedJob = 0;
+    dead = false;
     runningjob = [](astro::Job &ctx){ return; };
 }
 
@@ -242,8 +243,9 @@ void astro::Job::resume(){
 }
 
 astro::Job *astro::Job::hook(astro::JobType hookjob){
+    // spawn job paused
     auto job = jobs.spawn(hookjob, this->untethered, 0, false, true);
-    jobs.requestHook(this->id, job->id);
+    jobs.requestHook(this->id, job->id); // hook it to this job
     return job;
 }
 

@@ -6,7 +6,7 @@ int main(int argc, const char *argv[]){
 	astro::Core::init();
 	astro::Gfx::init("astro ~> *", astro::Vec2<int>(1920, 1080));
 
-
+	// testing hook for Jobs
 	auto job = astro::spawn([](astro::Job &ctx){
 		astro::log("first!\n");
 	}, false, 10000, false);
