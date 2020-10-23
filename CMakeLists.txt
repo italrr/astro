@@ -12,6 +12,7 @@ set (astro_src
     src/engine/render/OpenGL.cpp
     src/engine/render/Vulkan.cpp
     src/engine/Core.cpp
+    src/engine/common/3rdparty/Jzon.cpp
     src/engine/common/Log.cpp
     src/engine/common/Tools.cpp    
     src/engine/common/Job.cpp)
@@ -22,9 +23,9 @@ if(UNIX AND NOT APPLE)
     set(LINUX TRUE)
 endif()
 
-IF(UNIX)
+IF(LINUX)
 	target_link_libraries(astro_bin -m64 -lglfw -pthread -ldl -lGLU -lGL -lrt -lXrandr -lXxf86vm -lXi -lXinerama -lX11 -lvulkan)
-ENDIF(UNIX)
+ENDIF(LINUX)
 
 IF(MINGW)
 	target_link_libraries(astro_bin -m64 -lglfw3 -pthread -lgdi32 -lopengl32 -lvulkan-1)

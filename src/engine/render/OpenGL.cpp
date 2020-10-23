@@ -1,6 +1,7 @@
 #include <GLFW/glfw3.h>
 #include "../common/Result.hpp"
 #include "OpenGL.hpp"
+#include "../common/Log.hpp"
 
 astro::Result astro::Gfx::RenderEngineOpenGL::init(){
     if (!glfwInit()){

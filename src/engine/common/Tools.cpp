@@ -1,8 +1,16 @@
-#include <sys/time.h>
 #include <chrono>
 #include <thread>
+#include <sys/time.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <stdlib.h>
 
 #include "Tools.hpp"
+
+/*
+	TIME
+*/
 
 uint64 astro::ticks(){
 	return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -32,4 +40,29 @@ uint64 astro::epoch(){
 
 void astro::sleep(uint64 t){
     __usleep(t);
+}
+
+/* 
+	FILE
+*/
+
+namespace astro::File {
+
+	bool exists(const std::string &path){
+		struct stat tt;
+		stat(path.c_str(), &tt);
+		return S_ISREG(tt.st_mode);		
+	}
+
+}
+
+/*
+	STRING
+*/
+std::string astro::String::toLower(const std::string &str){
+	std::string out;
+	for(int i = 0; i < str.size(); i++){
+		out += tolower(str.at(i));
+	}
+	return out;
 }

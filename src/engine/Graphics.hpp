@@ -45,7 +45,7 @@
 				virtual astro::Result render(){ return Result(ResultType::Success); } 
 			};
 			
-			void init(const std::string &title, astro::Vec2<int> size);
+			void init(const std::string &title, astro::Vec2<int> size = astro::Vec2<int>(0));
 			void update();
 			bool isRunning();
 			void onEnd();
