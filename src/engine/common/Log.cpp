@@ -30,7 +30,7 @@ bool astro::log(const std::string &_format, ...){
 
 void __ASTRO_init_log(){
     if (pthread_mutex_init(&lock, NULL) != 0) { 
-        printf("Fatal Error: Couldn't initialize __ASTRO_init_log's mutex-lock"); 
+        printf("Fatal Error: Couldn't initialize __ASTRO_init_log's mutex-lock\n"); 
         astro::Core::exit(1);
     }
 }

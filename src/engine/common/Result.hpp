@@ -30,10 +30,12 @@
             int val;
             std::string msg;
             void *payload;
+            size_t psize; // payload size (in bytes)
             Result(){
                 this->val = ResultType::noop;
                 this->msg = "";
                 this->payload = NULL;
+                this->psize = 0;
             }
             Result(int val, const std::string &msg, void *payload){
                 set(val, msg, payload);

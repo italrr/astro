@@ -68,6 +68,7 @@ astro::Result astro::Gfx::RenderEngineVulkan::end(){
     if(ctx.instance != NULL){
         ctx.pfnDestroyInstance(ctx.instance, NULL); 
     }
+    return astro::Result(ResultType::Success);
 }
 
 astro::Result astro::Gfx::RenderEngineVulkan::createWindow(const std::string &title, Vec2<int> size){

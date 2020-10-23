@@ -28,7 +28,7 @@
 						case RenderEngineType::None:
 							return "None";								
 						default:
-							"Undefined";
+							return "Undefined";
 					}
 				}
 			}
@@ -42,6 +42,7 @@
 				virtual astro::Result end(){ return Result(ResultType::Success); }
 				virtual astro::Result createWindow(const std::string &title, Vec2<int> size){ return Result(ResultType::Success); }
 				virtual astro::Result isSupported(){ return Result(ResultType::Success); }
+				virtual astro::Result render(){ return Result(ResultType::Success); } 
 			};
 			
 			void init(const std::string &title, astro::Vec2<int> size);

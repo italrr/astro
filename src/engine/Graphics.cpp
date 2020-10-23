@@ -37,25 +37,25 @@ void astro::Gfx::init(const std::string &title, astro::Vec2<int> size){
     ctx.size = size;
     ctx.running = true;
     astro::log("astro ~> *\n");
-    astro::log("Initializing graphics '"+RenderEngineType::name(ctx.render->type)+"' | resolution: %dx%d\n", size.x, size.y);
+    astro::log("Initializing graphics '%s' | resolution: %dx%d\n", RenderEngineType::name(ctx.render->type).c_str(), size.x, size.y);
 
     auto suppR = ctx.render->isSupported();
     if(!suppR){
-        astro::log("Render '"+RenderEngineType::name(ctx.render->type)+"' is not supported : continuing headless...\n");
+        astro::log("Render '%s' is not supported : continuing headless...\n", RenderEngineType::name(ctx.render->type).c_str());
         ctx.headless = true;
         return;   
     }
 
     auto initR = ctx.render->init();
     if (!initR){
-        astro::log(initR.msg+"\n");
+        astro::log("%s\n", initR.msg.c_str());
         ctx.headless = true;
         return;
     }
 
     auto windowR = ctx.render->createWindow(ctx.title, ctx.size);
     if (!windowR){
-        astro::log(windowR.msg+"\n");
+        astro::log("%s\n", windowR.msg.c_str());
         ctx.headless = true;
         return;
     }

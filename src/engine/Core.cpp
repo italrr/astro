@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "common/Log.hpp"
 #include "Core.hpp"
@@ -32,7 +32,7 @@ void astro::Core::onEnd(){
     forcefully terminate the engine.
 */
 void astro::Core::exit(int code){
-    exit(code);
+    std::exit(code);
 }
 
 /*

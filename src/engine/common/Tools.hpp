@@ -2,6 +2,7 @@
     #define ASTRO_TOOL_GENERAL_HPP
 
     #include "Type.hpp"
+    #include "3rdparty/json.hpp"
 
     namespace astro {
         // time

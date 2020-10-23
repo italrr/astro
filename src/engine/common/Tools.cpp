@@ -1,16 +1,15 @@
-#include "Tools.hpp"
 #include <sys/time.h>
+#include <chrono>
+#include <thread>
+
+#include "Tools.hpp"
 
 uint64 astro::ticks(){
-    static timeval t;
-    gettimeofday(&t, 0);
-    return (int64)(t.tv_sec * 1000l) + (int64)(t.tv_usec / 1000l);
+	return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 uint64 astro::epoch(){
-    static timeval t;
-    gettimeofday(&t, 0);
-    return t.tv_sec;
+	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 #ifdef _WIN32
@@ -26,8 +25,6 @@ uint64 astro::epoch(){
 	    CloseHandle(timer);
 	}
 #else
-	#include <chrono>
-	#include <thread>
 	static inline void __usleep(int msec){
 		std::this_thread::sleep_for(std::chrono::milliseconds(msec));
 	}

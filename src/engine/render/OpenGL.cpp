@@ -11,6 +11,7 @@ astro::Result astro::Gfx::RenderEngineOpenGL::init(){
 
 astro::Result astro::Gfx::RenderEngineOpenGL::end(){
     glfwMakeContextCurrent(NULL);
+    return astro::Result(ResultType::Success);
 }
 
 astro::Result astro::Gfx::RenderEngineOpenGL::createWindow(const std::string &title, Vec2<int> size){

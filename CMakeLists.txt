@@ -18,6 +18,14 @@ set (astro_src
 
 add_library(astro_bin ${astro_src})
 
+if(UNIX AND NOT APPLE)
+    set(LINUX TRUE)
+endif()
+
+IF(UNIX)
+	target_link_libraries(astro_bin -m64 -lglfw -pthread -ldl -lGLU -lGL -lrt -lXrandr -lXxf86vm -lXi -lXinerama -lX11 -lvulkan)
+ENDIF(UNIX)
+
 IF(MINGW)
 	target_link_libraries(astro_bin -m64 -lglfw3 -pthread -lgdi32 -lopengl32 -lvulkan-1)
 ENDIF(MINGW)

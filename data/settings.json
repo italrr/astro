@@ -1,0 +1,7 @@
+{
+	"__version__": "0",
+	"rwidth": 1920,
+	"rheight": 1080,
+	"rvsync": false,
+	"rbackend": "opengl"
+}
