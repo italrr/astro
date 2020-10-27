@@ -40,6 +40,33 @@
                 this->y = c;
             }
         };
+
+        template<typename T>
+        struct Vec3 {
+            T x, y, z;
+            
+            Vec3(T x, T y, T z){
+                set(x, y, z);
+            }
+            
+            Vec3(T c){
+                set(c);
+            }
+            
+            Vec3(){
+                
+            }
+            
+            void set(T x, T y, T z){
+                this->x = x; this->y = y; this->z = z;
+            }
+
+            void set(T c){
+                this->x = c;
+                this->y = c;
+                this->z = c;
+            }
+        };        
     }
 
 #endif

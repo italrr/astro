@@ -13,6 +13,8 @@
             struct SettingsFile {
                 astro::Vec2<int> size; // window size
                 bool vsync;
+                bool resizeable;
+                bool fullscreen;
                 std::string backend; // opengl, vulkan
             };
 

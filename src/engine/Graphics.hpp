@@ -49,15 +49,17 @@
 			}
 
 			struct RenderEngine {
+				void *window;
 				RenderEngine(){
 					type = RenderEngineType::Undefined;
+					window = NULL;
 				}
 				int type;
 				virtual astro::Result init(){ return Result(ResultType::Success); }
 				virtual astro::Result end(){ return Result(ResultType::Success); }
 				virtual astro::Result createWindow(const std::string &title, Vec2<int> size){ return Result(ResultType::Success); }
 				virtual astro::Result isSupported(){ return Result(ResultType::Success); }
-				virtual astro::Result render(){ return Result(ResultType::Success); } 
+				virtual int render(){ return 0; } 
 			};
 			
 
@@ -66,15 +68,22 @@
 					size = astro::Vec2<int>(0);
 					title = "";
 					ret = RenderEngineType::Undefined;
+					resizeable = false;
+					vsync = false;
+					fullscreen = false;
 				}
 				std::string title;
 				astro::Vec2<int> size;
+				bool fullscreen;
+				bool resizeable;
+				bool vsync;
 				RenderEngineType::RenderEngineType ret;
 			};
 
 			void init(const std::string &title, astro::Vec2<int> size = astro::Vec2<int>(0));
 			void init(const std::string &title, RenderEngineType::RenderEngineType ret = RenderEngineType::Undefined);
 			void init(const std::string &title, RenderInitSettings &sett);
+			void init(const std::string &title);
 			void init(RenderInitSettings &sett);
 			void update();
 			bool isRunning();

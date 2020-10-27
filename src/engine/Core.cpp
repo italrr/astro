@@ -9,6 +9,8 @@
 #define DEFAULT_SETTINGS_BACKEND "opengl"
 #define DEFAULT_SETTINGS_WSIZE astro::Vec2<int>(640, 480)
 #define DEFAULT_SETTINGS_VSYNC false
+#define DEFAULT_SETTINGS_RESIZEABLE false
+#define DEFAULT_SETTINGS_FULLSCREEN false
 
 static astro::Core::SettingsFile sfile; 
 
@@ -33,7 +35,9 @@ void astro::Core::init(){
     sfile.size.x = settings.get("rwidth").toInt(DEFAULT_SETTINGS_WSIZE.x);
     sfile.size.y = settings.get("rheight").toInt(DEFAULT_SETTINGS_WSIZE.y);
     sfile.vsync = settings.get("rvsync").toBool(DEFAULT_SETTINGS_VSYNC);
-    sfile.backend = settings.get("rbackend").toString(DEFAULT_SETTINGS_BACKEND);   
+    sfile.backend = settings.get("rbackend").toString(DEFAULT_SETTINGS_BACKEND); 
+    sfile.resizeable = settings.get("rresizeable").toBool(DEFAULT_SETTINGS_RESIZEABLE);
+    sfile.fullscreen = settings.get("rfullscreen").toBool(DEFAULT_SETTINGS_FULLSCREEN);
     __ASTRO_init_log();
     __ASTRO_init_job();
 }

@@ -4,5 +4,6 @@
 	"rheight": 1080,
 	"rvsync": false,
 	"rbackend": "vulkan",
-	"rfullscreen": false
+	"rfullscreen": false,
+	"rresizeable": true
 }

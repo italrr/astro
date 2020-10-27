@@ -9,6 +9,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/builds/cmake)
 # src
 set (astro_src
     src/engine/Graphics.cpp
+    src/engine/render/glad.c
     src/engine/render/OpenGL.cpp
     src/engine/render/Vulkan.cpp
     src/engine/Core.cpp

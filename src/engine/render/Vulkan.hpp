@@ -16,6 +16,7 @@
 				astro::Result end();
 				astro::Result createWindow(const std::string &title, Vec2<int> size);
 				astro::Result isSupported();
+                int render();
 
             };
 

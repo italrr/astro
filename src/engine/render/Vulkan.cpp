@@ -25,10 +25,6 @@ struct _VulkanCtx {
 static _VulkanCtx ctx = _VulkanCtx();
 
 astro::Result astro::Gfx::RenderEngineVulkan::init(){
-    if (!glfwInit()){
-        return astro::Result(ResultType::Failure, "failed to start 'GLFW': continuing headless...");
-    }
-
     // app info
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -78,6 +74,7 @@ astro::Result astro::Gfx::RenderEngineVulkan::createWindow(const std::string &ti
     if (!window){
         return astro::Result(ResultType::Failure, "failed to open window");
     }
+    this->window = window;
     glfwCreateWindowSurface(ctx.instance, window, NULL, &ctx.surface);
     return astro::Result(ResultType::Success, window);
 }
@@ -86,3 +83,8 @@ astro::Result astro::Gfx::RenderEngineVulkan::isSupported(){
     return astro::Result(ResultType::Success);
 }
 
+
+int astro::Gfx::RenderEngineVulkan::render(){
+
+    return 0;
+}

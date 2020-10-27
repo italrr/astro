@@ -1,12 +1,12 @@
+#include "glad.h"
 #include <GLFW/glfw3.h>
+
 #include "../common/Result.hpp"
-#include "OpenGL.hpp"
 #include "../common/Log.hpp"
 
+#include "OpenGL.hpp"
+
 astro::Result astro::Gfx::RenderEngineOpenGL::init(){
-    if (!glfwInit()){
-        return astro::Result(ResultType::Failure, "failed to start 'GLFW': continuing headless...");
-    }
     return astro::Result(ResultType::Success);
 }
 
@@ -21,10 +21,21 @@ astro::Result astro::Gfx::RenderEngineOpenGL::createWindow(const std::string &ti
     if (!window){
         return astro::Result(ResultType::Failure, "failed to open window");
     }
+    this->window = window;
     glfwMakeContextCurrent(window);
+    gladLoadGL();
+    astro::log("GPU OpenGL version: %s\n", glGetString(GL_VERSION));
     return astro::Result(ResultType::Success, window);
 }
 
 astro::Result astro::Gfx::RenderEngineOpenGL::isSupported(){
     return astro::Result(ResultType::Success);
 }
+
+int astro::Gfx::RenderEngineOpenGL::render(){
+    glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glfwSwapBuffers(static_cast<GLFWwindow*>(window));
+    return 0;
+}   

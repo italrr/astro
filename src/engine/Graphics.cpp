@@ -54,9 +54,14 @@ static void ctrlC(int s){
 }
 
 void astro::Gfx::init(const std::string &title, astro::Vec2<int> size){
+    auto sfile = astro::Core::getSettingsFile();
     RenderInitSettings sett = RenderInitSettings();
     sett.title = title;
     sett.size = size;
+    sett.vsync = sfile.vsync;
+    sett.fullscreen = sfile.vsync;
+    sett.resizeable = sfile.resizeable;
+    sett.ret = RenderEngineType::value(sfile.backend);
     init(sett);
 }
 
@@ -65,30 +70,51 @@ void astro::Gfx::init(const std::string &title, astro::Gfx::RenderInitSettings &
     init(sett);
 }
 
-void astro::Gfx::init(const std::string &title, RenderEngineType::RenderEngineType ret){    
+void astro::Gfx::init(const std::string &title, RenderEngineType::RenderEngineType ret){  
+    auto sfile = astro::Core::getSettingsFile();
     RenderInitSettings sett = RenderInitSettings();
     sett.title = title;
+    sett.size = sfile.size;
+    sett.vsync = sfile.vsync;
+    sett.fullscreen = sfile.fullscreen;
+    sett.resizeable = sfile.resizeable;
     sett.ret = ret;
-    init(sett);    
+    init(sett);  
+}
+
+void astro::Gfx::init(const std::string &title){
+    auto sfile = astro::Core::getSettingsFile();
+    RenderInitSettings sett = RenderInitSettings();
+    sett.title = title;
+    sett.size = sfile.size;
+    sett.vsync = sfile.vsync;
+    sett.fullscreen = sfile.fullscreen;
+    sett.resizeable = sfile.resizeable;
+    sett.ret = RenderEngineType::value(sfile.backend);
+    init(sett);
 }
 
 void astro::Gfx::init(RenderInitSettings &sett){
-    auto sfile = astro::Core::getSettingsFile();
     ctx.title = sett.title;
-    ctx.size = sfile.size;
-    ctx.setBackend(sett.ret == astro::Gfx::RenderEngineType::Undefined ? astro::Gfx::RenderEngineType::value(sfile.backend) : sett.ret);
+    ctx.size = sett.size;
+    ctx.setBackend(sett.ret);
     ctx.running = true;
     if(sett.size.x != 0 && sett.size.y != 0){
         ctx.size = sett.size;
     }    
+    std::string wst = sett.fullscreen ? "fullscreen" : "windowed";
     astro::log("astro ~> *\n");
-    astro::log("initializing graphics '%s' | resolution: %dx%d\n", RenderEngineType::name(ctx.render->type).c_str(), ctx.size.x, ctx.size.y);
+    astro::log("initializing graphics '%s' | resolution: %dx%d | %s \n", RenderEngineType::name(ctx.render->type).c_str(), ctx.size.x, ctx.size.y, wst.c_str());
     auto suppR = ctx.render->isSupported();
     if(!suppR){
         astro::log("fatal error: render engine '%s' is not supported\n", RenderEngineType::name(ctx.render->type).c_str());
         astro::Core::exit(1);
     }
-
+    if (!glfwInit()){
+        astro::log("failed to start 'GLFW'");
+        astro::Core::exit(1);
+    }
+    glfwWindowHint(GLFW_RESIZABLE, sett.resizeable ? GL_TRUE : GL_FALSE);
     auto initR = ctx.render->init();
     if (!initR){
         astro::log("failure initializing renderer: %s\n", initR.msg.c_str());
@@ -115,7 +141,7 @@ void astro::Gfx::update(){
         end();
         return;
     }
-    glfwSwapBuffers(ctx.window);
+    ctx.render->render();
     glfwPollEvents();
 }
 
