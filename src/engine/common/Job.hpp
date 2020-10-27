@@ -10,12 +10,12 @@
     namespace astro {
 
         struct JobSpec {
-            bool infinite;
+            bool looped;
             bool lowLatency;
             bool threaded;
             std::vector<std::string> tags;
             JobSpec(){
-                infinite = false;
+                looped = false;
                 lowLatency = false;
                 threaded = true;
             }
@@ -30,27 +30,28 @@
         };
 
         enum JobStatus : uint8 {
+            Stopped,
             Running,
-            Paused,
+            Waiting,
             Done
         };
 
         struct Job {
+            // do not change these, ever.
             int id;
             uint8 status;
             uint64 initTime;
             astro::JobSpec spec;
-            std::function<void(astro::Job &ctx)> job;
-            
+            // interfacing
             void stop();
-            void pause();
-            void resume();
-            void hook();
-
-            std::shared_ptr<astro::Job> hook(std::function<void(astro::Job &ctx)> job, const astro::JobSpec &spec);
+            std::shared_ptr<astro::Job> hook(std::function<void(astro::Job &ctx)> funct, bool threaded);
+            std::shared_ptr<astro::Job> hook(std::function<void(astro::Job &ctx)> funct, bool threaded, bool looped, bool lowLatency);
+            std::shared_ptr<astro::Job> hook(std::function<void(astro::Job &ctx)> funct, const astro::JobSpec &spec);
         };
 
-        std::shared_ptr<astro::Job> spawn(std::function<void(astro::Job &ctx)> job, const astro::JobSpec &spec);
+        std::shared_ptr<astro::Job> spawn(std::function<void(astro::Job &ctx)> funct, bool threaded);
+        std::shared_ptr<astro::Job> spawn(std::function<void(astro::Job &ctx)> funct, bool threaded, bool looped, bool lowLatency);
+        std::shared_ptr<astro::Job> spawn(std::function<void(astro::Job &ctx)> funct, const astro::JobSpec &spec);
     }
     
 

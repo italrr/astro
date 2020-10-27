@@ -16,6 +16,10 @@
         namespace String {
             std::string toLower(const std::string &str);
         }
+        // math
+        namespace Math {
+            int random(int min, int max);
+        }
     }
 
 #endif

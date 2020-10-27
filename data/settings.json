@@ -1,9 +1,11 @@
 {
 	"__version__": "0",
-	"rwidth": 1920,
-	"rheight": 1080,
-	"rvsync": false,
-	"rbackend": "vulkan",
-	"rfullscreen": false,
-	"rresizeable": true
+	"render": {
+		"width": 1920,
+		"height": 1080,
+		"vsync": false,
+		"backend": "vulkan",
+		"fullscreen": false,
+		"resizeable": false		
+	}
 }

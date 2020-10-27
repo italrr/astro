@@ -32,19 +32,20 @@ void astro::Core::init(){
     // read settings file
     Jzon::Parser parser;
     auto settings = parser.parseFile(DEFAULT_SETTINGS_FILE);
-    sfile.size.x = settings.get("rwidth").toInt(DEFAULT_SETTINGS_WSIZE.x);
-    sfile.size.y = settings.get("rheight").toInt(DEFAULT_SETTINGS_WSIZE.y);
-    sfile.vsync = settings.get("rvsync").toBool(DEFAULT_SETTINGS_VSYNC);
-    sfile.backend = settings.get("rbackend").toString(DEFAULT_SETTINGS_BACKEND); 
-    sfile.resizeable = settings.get("rresizeable").toBool(DEFAULT_SETTINGS_RESIZEABLE);
-    sfile.fullscreen = settings.get("rfullscreen").toBool(DEFAULT_SETTINGS_FULLSCREEN);
+    auto rsettings = settings.get("render"); // TODO: add some validation
+    sfile.size.x = rsettings.get("width").toInt(DEFAULT_SETTINGS_WSIZE.x);
+    sfile.size.y = rsettings.get("height").toInt(DEFAULT_SETTINGS_WSIZE.y);
+    sfile.vsync = rsettings.get("vsync").toBool(DEFAULT_SETTINGS_VSYNC);
+    sfile.backend = rsettings.get("backend").toString(DEFAULT_SETTINGS_BACKEND); 
+    sfile.resizeable = rsettings.get("resizeable").toBool(DEFAULT_SETTINGS_RESIZEABLE);
+    sfile.fullscreen = rsettings.get("fullscreen").toBool(DEFAULT_SETTINGS_FULLSCREEN);
     __ASTRO_init_log();
     __ASTRO_init_job();
 }
 
 void astro::Core::onEnd(){
-    astro::log("bye*\n");
     __ASTRO_end_job();
+    astro::log("bye*\n");
     __ASTRO_end_log();
 }
 
