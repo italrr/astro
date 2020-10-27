@@ -6,7 +6,7 @@
 
     #include "Type.hpp"
     #include "Result.hpp"
-    
+
     namespace astro {
 
         struct JobSpec {
@@ -18,6 +18,14 @@
                 infinite = false;
                 lowLatency = false;
                 threaded = true;
+            }
+            bool hasTag(const std::string &tag){
+                for(int i = 0; i < this->tags.size(); ++i){
+                    if(this->tags[i] == tag){
+                        return true;
+                    }
+                }
+                return false;
             }
         };
 

@@ -4,7 +4,7 @@
 int main(int argc, const char *argv[]){
 	
 	astro::Core::init();
-	astro::Gfx::init("   astro   ");
+	astro::Gfx::init("   astro   ", astro::Gfx::RenderEngineType::OpenGL);
 
 	while(astro::Gfx::isRunning()){
 

@@ -45,15 +45,16 @@ void astro::sleep(uint64 t){
 /* 
 	FILE
 */
+namespace astro {
+	namespace File {
 
-namespace astro::File {
+		bool exists(const std::string &path){
+			struct stat tt;
+			stat(path.c_str(), &tt);
+			return S_ISREG(tt.st_mode);		
+		}
 
-	bool exists(const std::string &path){
-		struct stat tt;
-		stat(path.c_str(), &tt);
-		return S_ISREG(tt.st_mode);		
 	}
-
 }
 
 /*

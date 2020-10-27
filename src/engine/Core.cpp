@@ -39,6 +39,7 @@ void astro::Core::init(){
 }
 
 void astro::Core::onEnd(){
+    astro::log("bye*\n");
     __ASTRO_end_job();
     __ASTRO_end_log();
 }
