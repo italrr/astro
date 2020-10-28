@@ -25,6 +25,7 @@ static std::map<int, int> keyRawState;
 static std::map<int, int> KeyStatePressed;
 static std::map<int, int> KeyStateReleased;
 
+static astro::Vec2<int> cursorPosition;
 static const int MAX_BUTTONS = 3;
 static const int buttonTranslateTable[MAX_BUTTONS] = {
     0, 2, 1
@@ -73,6 +74,10 @@ static void buttonCallback(GLFWwindow* window, int button, int action, int mods)
     if(buttonStateReleased[button] == _STATE::RELEASE && action == GLFW_PRESS){
         buttonStateReleased[button] =_STATE::PRESS;
     }  
+}
+
+static void cursorPositionCallBack(GLFWwindow* window, double xpos, double ypos){
+    cursorPosition.set(xpos, ypos);
 }
 
 bool astro::Input::mouseCheck(int button){
@@ -131,7 +136,12 @@ bool astro::Input::keyboardReleased(int key){
 	return false;
 }
 
+astro::Vec2<int> astro::Input::mousePosition(){
+    return cursorPosition;
+}
+
 void __ASTRO_init_input(GLFWwindow* win){
+    auto *window = static_cast<GLFWwindow*>(win);
     for(int i = 0; i < MAX_KEYS; ++i){
         keyRawState[keyTranslateTable[i]] = _STATE::RELEASE;
         KeyStatePressed[keyTranslateTable[i]] = _STATE::RELEASE;
@@ -142,8 +152,9 @@ void __ASTRO_init_input(GLFWwindow* win){
         buttonStatePressed[buttonTranslateTable[i]] = _STATE::RELEASE;
         buttonStateReleased[buttonTranslateTable[i]] = _STATE::RELEASE;        
     }    
-    glfwSetKeyCallback(static_cast<GLFWwindow*>(win), keycallback);
-    glfwSetMouseButtonCallback(static_cast<GLFWwindow*>(win), buttonCallback);
+    glfwSetKeyCallback(window, keycallback);
+    glfwSetMouseButtonCallback(window, buttonCallback);
+    glfwSetCursorPosCallback(window, cursorPositionCallBack);
 }
 
 void __ASTRO_end_input(){

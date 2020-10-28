@@ -12,6 +12,7 @@ set (astro_src
     src/engine/render/glad.c
     src/engine/render/OpenGL.cpp
     src/engine/render/Vulkan.cpp
+    src/engine/render/Texture.cpp
     src/engine/Core.cpp
     src/engine/Input.cpp
     src/engine/common/3rdparty/Jzon.cpp

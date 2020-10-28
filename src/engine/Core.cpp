@@ -12,6 +12,8 @@
 #define DEFAULT_SETTINGS_RESIZEABLE false
 #define DEFAULT_SETTINGS_FULLSCREEN false
 
+#define DEFAULT_SETTINGS_MOUSE_MODE "raw"
+
 static astro::Core::SettingsFile sfile; 
 
 astro::Core::SettingsFile astro::Core::getSettingsFile(){
@@ -32,13 +34,20 @@ void astro::Core::init(){
     // read settings file
     Jzon::Parser parser;
     auto settings = parser.parseFile(DEFAULT_SETTINGS_FILE);
-    auto rsettings = settings.get("render"); // TODO: add some validation
+    
+    // TODO: add some validation
+
+    auto rsettings = settings.get("render"); 
     sfile.size.x = rsettings.get("width").toInt(DEFAULT_SETTINGS_WSIZE.x);
     sfile.size.y = rsettings.get("height").toInt(DEFAULT_SETTINGS_WSIZE.y);
     sfile.vsync = rsettings.get("vsync").toBool(DEFAULT_SETTINGS_VSYNC);
     sfile.backend = rsettings.get("backend").toString(DEFAULT_SETTINGS_BACKEND); 
     sfile.resizeable = rsettings.get("resizeable").toBool(DEFAULT_SETTINGS_RESIZEABLE);
     sfile.fullscreen = rsettings.get("fullscreen").toBool(DEFAULT_SETTINGS_FULLSCREEN);
+    
+    auto msettings = settings.get("mouse");
+    sfile.mouseMode = msettings.get("mode").toString(DEFAULT_SETTINGS_MOUSE_MODE);
+
     __ASTRO_init_log();
     __ASTRO_init_job();
     astro::log("astro ~> *\n");

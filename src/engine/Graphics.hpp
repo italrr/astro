@@ -60,6 +60,7 @@
 				virtual astro::Result createWindow(const std::string &title, Vec2<int> size){ return Result(ResultType::Success); }
 				virtual astro::Result isSupported(){ return Result(ResultType::Success); }
 				virtual int render(){ return 0; } 
+				virtual void readjust(const astro::Vec2<int> &origin, const astro::Vec2<int> &size) { return; }
 			};
 			
 

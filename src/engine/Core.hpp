@@ -11,11 +11,14 @@
         namespace Core {
 
             struct SettingsFile {
+                // render
                 astro::Vec2<int> size; // window size
                 bool vsync;
                 bool resizeable;
                 bool fullscreen;
                 std::string backend; // opengl, vulkan
+                // mouse
+                std::string mouseMode;
             };
 
             void exit(int code = 0);

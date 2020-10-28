@@ -16,6 +16,9 @@ astro::Result astro::Gfx::RenderEngineOpenGL::end(){
 }
 
 astro::Result astro::Gfx::RenderEngineOpenGL::createWindow(const std::string &title, Vec2<int> size){
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     GLFWwindow* window;
     window = glfwCreateWindow(size.x, size.y, title.c_str(), NULL, NULL);
     if (!window){
@@ -25,6 +28,7 @@ astro::Result astro::Gfx::RenderEngineOpenGL::createWindow(const std::string &ti
     glfwMakeContextCurrent(window);
     gladLoadGL();
     astro::log("[GFX] GPU OpenGL version: %s\n", glGetString(GL_VERSION));
+    readjust(astro::Vec2<int>(0), size);
     return astro::Result(ResultType::Success, window);
 }
 
@@ -39,3 +43,9 @@ int astro::Gfx::RenderEngineOpenGL::render(){
     glfwSwapBuffers(static_cast<GLFWwindow*>(window));
     return 0;
 }   
+
+void astro::Gfx::RenderEngineOpenGL::readjust(const astro::Vec2<int> &origin, const astro::Vec2<int> &size){
+    glViewport(origin.x, origin.y, size.x, size.y);
+
+    return;
+}

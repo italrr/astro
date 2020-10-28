@@ -42,6 +42,12 @@ struct _Gfx {
             } break;                                                
         }
     }
+    void readjust(){
+        if(render == NULL){
+            return;
+        }
+        render->readjust(astro::Vec2<int>(0), size);
+    }
     ~_Gfx(){
         if(this->render != NULL){
             return;
@@ -51,6 +57,11 @@ struct _Gfx {
 };
 
 static _Gfx ctx = _Gfx();
+
+static void frameBufferResize(GLFWwindow* window, int width, int height){
+    ctx.size = astro::Vec2<int>(width, height);
+    ctx.readjust();
+}
 
 static void ctrlC(int s){
     astro::log("caught ctrl-c\n");
@@ -133,6 +144,7 @@ void astro::Gfx::init(RenderInitSettings &sett){
     }
     ctx.window = (GLFWwindow*)windowR.payload;
     __ASTRO_init_input(ctx.window);
+    glfwSetFramebufferSizeCallback(ctx.window, frameBufferResize);  
     signal(SIGINT, ctrlC); // catch ctrl+c to start proper shut down (it fails sometimes though)
 }
 

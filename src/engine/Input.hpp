@@ -1,6 +1,8 @@
 #ifndef ASTRO_INPUT_HPP
 	#define ASTRO_INPUT_HPP
 
+    #include "common/Type.hpp"
+
     namespace astro {
 
         namespace Input {
@@ -36,6 +38,8 @@
             bool keyboardCheck(int key);
             bool keyboardPressed(int key);
             bool keyboardReleased(int key);
+
+            astro::Vec2<int> mousePosition();
         }
     }
 
