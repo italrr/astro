@@ -22,10 +22,10 @@ astro::Core::SettingsFile astro::Core::getSettingsFile(){
 // astro's internal controllers
 void __ASTRO_init_log();
 void __ASTRO_end_log();
+
 void __ASTRO_init_job();
 void __ASTRO_update_job();
 void __ASTRO_end_job();
-
 
 
 void astro::Core::init(){
@@ -41,6 +41,7 @@ void astro::Core::init(){
     sfile.fullscreen = rsettings.get("fullscreen").toBool(DEFAULT_SETTINGS_FULLSCREEN);
     __ASTRO_init_log();
     __ASTRO_init_job();
+    astro::log("astro ~> *\n");
 }
 
 void astro::Core::onEnd(){

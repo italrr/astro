@@ -24,7 +24,7 @@ astro::Result astro::Gfx::RenderEngineOpenGL::createWindow(const std::string &ti
     this->window = window;
     glfwMakeContextCurrent(window);
     gladLoadGL();
-    astro::log("GPU OpenGL version: %s\n", glGetString(GL_VERSION));
+    astro::log("[GFX] GPU OpenGL version: %s\n", glGetString(GL_VERSION));
     return astro::Result(ResultType::Success, window);
 }
 

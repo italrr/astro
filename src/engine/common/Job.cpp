@@ -98,7 +98,7 @@ struct _Scheduler {
         if(spec.threaded){
             int rc  = pthread_create(&job.thread, NULL, thread_job, (void*)&pool[id]);
             if (rc){
-                astro::log("attention: failed to spawn thread id '%i'. return code: '%i'\n", id, rc);
+                astro::log("[GFX] attention: failed to spawn thread id '%i'. return code: '%i'\n", id, rc);
                 handle->status = astro::JobStatus::Stopped;
             }            
         }
@@ -127,12 +127,12 @@ struct _Scheduler {
             jref.lead = lead;
             handle->status = astro::JobStatus::Waiting;
         }else{
-            astro::log("[JOB] failed to hook job to non-existing job id %i. starting right away...\n", lead);
+            astro::log("[JOB] failed to hook job to non-existing job id %i. starting it right away instead...\n", lead);
         }
         if(spec.threaded){
             int rc  = pthread_create(&jref.thread, NULL, thread_job, (void*)&pool[id]);
             if (rc){
-                astro::log("attention: failed to spawn thread id '%i'. return code: '%i'\n", id, rc);
+                astro::log("[JOB] attention: failed to spawn thread id '%i'. return code: '%i'\n", id, rc);
                 handle->status = astro::JobStatus::Stopped;
             }            
         }

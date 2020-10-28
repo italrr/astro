@@ -9,6 +9,10 @@
 #include "render/Vulkan.hpp"
 #include "render/OpenGL.hpp"
 
+// since input comes from the window itself
+void __ASTRO_init_input(GLFWwindow *window);
+void __ASTRO_end_input();
+
 struct _Gfx {
     std::string title;
     float timescale;
@@ -103,33 +107,32 @@ void astro::Gfx::init(RenderInitSettings &sett){
         ctx.size = sett.size;
     }    
     std::string wst = sett.fullscreen ? "fullscreen" : "windowed";
-    astro::log("astro ~> *\n");
-    astro::log("initializing graphics '%s' | resolution: %dx%d | %s \n", RenderEngineType::name(ctx.render->type).c_str(), ctx.size.x, ctx.size.y, wst.c_str());
+    astro::log("[GFX] initializing graphics '%s' | resolution: %dx%d | %s \n", RenderEngineType::name(ctx.render->type).c_str(), ctx.size.x, ctx.size.y, wst.c_str());
     auto suppR = ctx.render->isSupported();
     if(!suppR){
-        astro::log("fatal error: render engine '%s' is not supported\n", RenderEngineType::name(ctx.render->type).c_str());
+        astro::log("[GFX] fatal error: render engine '%s' is not supported\n", RenderEngineType::name(ctx.render->type).c_str());
         astro::Core::exit(1);
     }
     if (!glfwInit()){
-        astro::log("failed to start 'GLFW'");
+        astro::log("[GFX] failed to start 'GLFW'");
         astro::Core::exit(1);
     }
     glfwWindowHint(GLFW_RESIZABLE, sett.resizeable ? GL_TRUE : GL_FALSE);
     auto initR = ctx.render->init();
     if (!initR){
-        astro::log("failure initializing renderer: %s\n", initR.msg.c_str());
+        astro::log("[GFX] failure initializing renderer: %s\n", initR.msg.c_str());
         astro::Core::exit(1);
         return;
     }
 
     auto windowR = ctx.render->createWindow(ctx.title, ctx.size);
     if (!windowR){
-        astro::log("failure opening window: %s\n", windowR.msg.c_str());
+        astro::log("[GFX] failure opening window: %s\n", windowR.msg.c_str());
         astro::Core::exit(1);
         return;
     }
     ctx.window = (GLFWwindow*)windowR.payload;
-
+    __ASTRO_init_input(ctx.window);
     signal(SIGINT, ctrlC); // catch ctrl+c to start proper shut down (it fails sometimes though)
 }
 
@@ -148,6 +151,7 @@ void astro::Gfx::update(){
 void astro::Gfx::end(){
     ctx.running = false;
     ctx.render->end();    
+    __ASTRO_end_input();
     glfwDestroyWindow(ctx.window);
     glfwTerminate();
 }
