@@ -17,7 +17,7 @@
 				astro::Result createWindow(const std::string &title, Vec2<int> size);
 				astro::Result isSupported();
                 int render();
-                void readjust(const astro::Vec2<int> &origin, const astro::Vec2<int> &size);
+                void readjustViewport(const astro::Vec2<int> &origin, const astro::Vec2<int> &size);
 
             };
 

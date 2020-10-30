@@ -28,7 +28,7 @@ astro::Result astro::Gfx::RenderEngineOpenGL::createWindow(const std::string &ti
     glfwMakeContextCurrent(window);
     gladLoadGL();
     astro::log("[GFX] GPU OpenGL version: %s\n", glGetString(GL_VERSION));
-    readjust(astro::Vec2<int>(0), size);
+    readjustViewport(astro::Vec2<int>(0), size);
     return astro::Result(ResultType::Success, window);
 }
 
@@ -44,7 +44,7 @@ int astro::Gfx::RenderEngineOpenGL::render(){
     return 0;
 }   
 
-void astro::Gfx::RenderEngineOpenGL::readjust(const astro::Vec2<int> &origin, const astro::Vec2<int> &size){
+void astro::Gfx::RenderEngineOpenGL::readjustViewport(const astro::Vec2<int> &origin, const astro::Vec2<int> &size){
     glViewport(origin.x, origin.y, size.x, size.y);
 
     return;

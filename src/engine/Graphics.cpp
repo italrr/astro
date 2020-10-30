@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <GLFW/glfw3.h>
 #include <signal.h>
 
@@ -46,7 +48,7 @@ struct _Gfx {
         if(render == NULL){
             return;
         }
-        render->readjust(astro::Vec2<int>(0), size);
+        render->readjustViewport(astro::Vec2<int>(0), size);
     }
     ~_Gfx(){
         if(this->render != NULL){
@@ -57,6 +59,19 @@ struct _Gfx {
 };
 
 static _Gfx ctx = _Gfx();
+
+
+std::shared_ptr<astro::Gfx::RenderLayer> astro::Gfx::RenderEngine::addRenderLayer(astro::Gfx::RenderLayerType type, const std::string &tag, int order){
+    auto rt = std::shared_ptr<astro::Gfx::RenderLayer>(new astro::Gfx::RenderLayer());
+    rt->type = type;
+    rt->tag = tag;
+    rt->order = order == -1 ? layers.size() : order;    
+    layers.push_back(rt);
+    std::sort(layers.begin(), layers.end(), [](std::shared_ptr<astro::Gfx::RenderLayer> a, std::shared_ptr<astro::Gfx::RenderLayer> b){
+        return a->order > b->order;
+    });
+    return rt;
+}
 
 static void frameBufferResize(GLFWwindow* window, int width, int height){
     ctx.size = astro::Vec2<int>(width, height);
@@ -146,6 +161,12 @@ void astro::Gfx::init(RenderInitSettings &sett){
     __ASTRO_init_input(ctx.window);
     glfwSetFramebufferSizeCallback(ctx.window, frameBufferResize);  
     signal(SIGINT, ctrlC); // catch ctrl+c to start proper shut down (it fails sometimes though)
+
+
+    // add layers
+    ctx.render->addRenderLayer(astro::Gfx::RenderLayerType::T_3D, "3dworld", 0);
+    ctx.render->addRenderLayer(astro::Gfx::RenderLayerType::T_2D, "ui", 1);
+    ctx.render->addRenderLayer(astro::Gfx::RenderLayerType::T_2D, "console", 2);
 }
 
 void astro::Gfx::update(){

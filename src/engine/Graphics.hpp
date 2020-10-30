@@ -1,9 +1,13 @@
 #ifndef ASTRO_GRAPHICS_HPP
 	#define ASTRO_GRAPHICS_HPP
 
+	#include <memory>
+
 	#include "common/Type.hpp"
 	#include "common/Result.hpp"
 	#include "common/Tools.hpp"
+
+	#include "render/RenderLayer.hpp"
 
 	namespace astro {
 		namespace Gfx {
@@ -50,6 +54,7 @@
 
 			struct RenderEngine {
 				void *window;
+				std::vector<std::shared_ptr<astro::Gfx::RenderLayer>> layers;
 				RenderEngine(){
 					type = RenderEngineType::Undefined;
 					window = NULL;
@@ -60,7 +65,8 @@
 				virtual astro::Result createWindow(const std::string &title, Vec2<int> size){ return Result(ResultType::Success); }
 				virtual astro::Result isSupported(){ return Result(ResultType::Success); }
 				virtual int render(){ return 0; } 
-				virtual void readjust(const astro::Vec2<int> &origin, const astro::Vec2<int> &size) { return; }
+				virtual void readjustViewport(const astro::Vec2<int> &origin, const astro::Vec2<int> &size) { return; }
+				virtual std::shared_ptr<astro::Gfx::RenderLayer> addRenderLayer(astro::Gfx::RenderLayerType type, const std::string &tag, int order = -1);
 			};
 			
 
