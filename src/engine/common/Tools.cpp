@@ -2,12 +2,17 @@
 #include <thread>
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <dirent.h>
 #include <random>
 
 #include "Tools.hpp"
+#include "3rdparty/MD5.hpp"
+#include "../Core.hpp"
 
 /*
 	TIME
@@ -31,10 +36,106 @@ void astro::sleep(uint64 t){
 namespace astro {
 	namespace File {
 
+		std::string dirSep(){
+			return Core::PLATFORM == Core::SupportedPlatform::LINUX ? "/" : "\\";
+		}
+
 		bool exists(const std::string &path){
 			struct stat tt;
 			stat(path.c_str(), &tt);
 			return S_ISREG(tt.st_mode);		
+		}
+		
+        std::string md5(const std::string &path){
+			if(!exists(path)){
+				return "";
+			}
+			FILE *f = fopen(path.c_str(), "rb");
+			fseek(f, 0, SEEK_END);
+			size_t fsize = ftell(f);
+			fseek(f, 0, SEEK_SET);
+			char *buffer = (char*)malloc(fsize);
+			fread(buffer, fsize, 1, f);
+			fclose(f);
+			std::string hash = md5(buffer, fsize);
+			free(buffer);
+			return hash;
+		}
+
+        std::string md5(char *data, size_t size){
+			ThirdPartyMD5::md5(data, size);
+		}
+
+		size_t size(const std::string &path){
+			if (!exists(path)){
+				return 0;
+			}
+			struct stat tt;
+			stat(path.c_str(), &tt);
+			return tt.st_size;			
+		}
+
+		std::string format(const std::string &filename){
+			int k = filename.rfind(".");
+			return k != -1 ? filename.substr(k+1, filename.length()-1) : "";
+		}
+
+		std::string filename(const std::string &path){
+			int k = path.rfind("/");
+			return k != -1 ? path.substr(k+1, path.length()-1) : path;			
+		}
+
+		astro::Result list(const std::string &path, const std::string &format, int type, bool recursively, std::vector<std::string> &output){
+			astro::Result result(astro::ResultType::noop);
+			DIR *directory;
+			struct dirent *ent;
+			std::vector<std::string> formats = String::split(format, "|");
+			bool anyf = !((int)formats.size());
+			directory = opendir(path.c_str());
+			if (directory == NULL){
+				result.set(ResultType::Failure, "directory '"+path+"' does not exist");
+				return result;
+			}
+			std::string filename;
+			while ((ent = readdir(directory))) {
+				filename = ent->d_name;
+				if (filename == "." || filename == ".."){
+					continue;
+				}
+				std::string fpath = path + dirSep() + filename;
+				struct stat ft;
+				stat(fpath.c_str(), &ft);
+				/* Directory */
+				if (S_ISDIR(ft.st_mode)) {
+					if (type == ListType::Directory || anyf){
+						output.push_back(fpath);
+					}
+					if (recursively){
+						File::list(fpath, format, type, recursively, output);
+					}
+				}else
+				/* File */
+				if (S_ISREG(ft.st_mode)){
+					if (type != ListType::File && type != ListType::Any){
+						continue;
+					}
+					bool add = anyf;
+					if (!anyf){
+						for (int i = 0; i< formats.size(); ++i){
+							if (File::format(fpath) == formats[i]){
+								add = true;
+								break;
+							}
+						}
+					}
+					if (add){
+						output.push_back(fpath);
+					}					
+				}
+			}
+			closedir (directory);
+			result.set(output.size() > 0 ? ResultType::Success : ResultType::Failure);
+			return result;
 		}
 
 	}
@@ -49,6 +150,15 @@ std::string astro::String::toLower(const std::string &str){
 		out += tolower(str.at(i));
 	}
 	return out;
+}
+std::vector<std::string> astro::String::split(const std::string &str, const std::string &sep){
+    std::vector<std::string> tokens;
+    char *token = strtok((char*)str.c_str(), sep.c_str()); 
+    while(token != NULL){ 
+        tokens.push_back(std::string(token));
+        token = strtok(NULL, "-"); 
+    } 
+    return tokens;
 }
 
 /* 

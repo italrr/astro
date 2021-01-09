@@ -78,7 +78,7 @@ struct _Scheduler {
         pthread_mutex_unlock(&poolMutex);
         pthread_mutex_destroy(&genIdMutex); 
         pthread_mutex_destroy(&poolMutex);
-        astro::log("[JOB] stopped all jobs\n");
+        astro::log("[JOB] done\n");
     }
 
     std::shared_ptr<astro::Job> spawn(std::function<void(astro::Job &ctx)> funct, const astro::JobSpec &spec){
@@ -98,7 +98,7 @@ struct _Scheduler {
         if(spec.threaded){
             int rc  = pthread_create(&job.thread, NULL, thread_job, (void*)&pool[id]);
             if (rc){
-                astro::log("[GFX] attention: failed to spawn thread id '%i'. return code: '%i'\n", id, rc);
+                astro::log("[JOB] attention: failed to spawn thread id '%i'. return code: '%i'\n", id, rc);
                 handle->status = astro::JobStatus::Stopped;
             }            
         }

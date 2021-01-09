@@ -133,7 +133,7 @@ void astro::Gfx::init(RenderInitSettings &sett){
         ctx.size = sett.size;
     }    
     std::string wst = sett.fullscreen ? "fullscreen" : "windowed";
-    astro::log("[GFX] initializing graphics '%s' | resolution: %dx%d | %s \n", RenderEngineType::name(ctx.render->type).c_str(), ctx.size.x, ctx.size.y, wst.c_str());
+    astro::log("[GFX] init '%s' | res %dx%d | %s | %s \n", RenderEngineType::name(ctx.render->type).c_str(), ctx.size.x, ctx.size.y, Core::CurrentPlatform().c_str(), wst.c_str());
     auto suppR = ctx.render->isSupported();
     if(!suppR){
         astro::log("[GFX] fatal error: render engine '%s' is not supported\n", RenderEngineType::name(ctx.render->type).c_str());

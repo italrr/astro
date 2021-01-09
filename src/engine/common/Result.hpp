@@ -54,6 +54,11 @@
                 this->msg = msg;
                 this->payload = payload;
             }
+            void set(int val, const std::string &msg = ""){
+                this->val = val;
+                this->msg = msg;
+                this->payload = NULL;
+            }            
             std::string str() const {
                 return ResultType::name(val) + (this->msg.length() > 0 ? " "+this->msg : "");
             }

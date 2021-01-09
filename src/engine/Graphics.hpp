@@ -52,9 +52,44 @@
 				}
 			}
 
+
+			namespace RenderObjectType {
+				enum RenderObjectType : int {
+					MODEL,
+					PRIMITIVE
+				};
+				static std::string name(int type){
+					switch(type){
+						case RenderObjectType::MODEL: 
+							return "Model";
+						case RenderObjectType::PRIMITIVE:
+							return "Primitive";
+						default:
+							return "Undefined";
+					}
+				}
+			}
+
+			struct RenderTransform {
+				astro::Vec3<float> position;	
+			};
+
+			struct RenderObject {
+				int id;
+				int type;
+				virtual void render();
+			};
+
+			struct RObjPrimitive : RenderObject {
+				std::shared_ptr<float> vertices;
+				int nvert; // vertices / nvert -> total vert
+				void init();
+			};
+
 			struct RenderEngine {
 				void *window;
 				std::vector<std::shared_ptr<astro::Gfx::RenderLayer>> layers;
+				std::vector<std::shared_ptr<astro::Gfx::RenderObject>> objects;
 				RenderEngine(){
 					type = RenderEngineType::Undefined;
 					window = NULL;

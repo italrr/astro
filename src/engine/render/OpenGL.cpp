@@ -40,6 +40,8 @@ int astro::Gfx::RenderEngineOpenGL::render(){
     glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    
+
     glfwSwapBuffers(static_cast<GLFWwindow*>(window));
     return 0;
 }   

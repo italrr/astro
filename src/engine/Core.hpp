@@ -5,10 +5,41 @@
     
     #include "common/Log.hpp"
     #include "common/Job.hpp"
+    #include "common/Indexer.hpp"
 
     namespace astro {
 
         namespace Core {
+
+            namespace SupportedPlatform {
+                enum SupportedPlatform : int {
+                    WINDOWS,
+                    LINUX,
+                    UNSUPPORTED = -1
+                };
+                static std::string name(int plat){
+                    switch(plat){
+                        case SupportedPlatform::WINDOWS: 
+                            return "WINDOWS";
+                        case SupportedPlatform::LINUX:
+                            return "LINUX";
+                        default:
+                            return "UNSUPPORTED";
+                    }
+                }
+            }
+
+            #ifdef _WIN32
+                const static int PLATFORM = SupportedPlatform::WINDOWS;
+            #elif __linux__
+                const static int PLATFORM = SupportedPlatform::LINUX;
+            #else
+                const static int PLATFORM = SupportedPlatform::UNSUPPORTED;
+            #endif       
+
+            static std::string CurrentPlatform(){
+                return SupportedPlatform::name(Core::PLATFORM);
+            }     
 
             struct SettingsFile {
                 // render
@@ -25,6 +56,7 @@
             void init();
             void update();
             void onEnd();
+            astro::Indexing::Indexer *getIndexer();
             // this is non-async
             astro::Core::SettingsFile getSettingsFile();
         }

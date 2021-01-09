@@ -5,7 +5,7 @@
 #include "common/Tools.hpp"
 #include "Core.hpp"
 
-#define DEFAULT_SETTINGS_FILE "data/settings.json"
+#define DEFAULT_SETTINGS_FILE "cfg/settings.json"
 #define DEFAULT_SETTINGS_BACKEND "opengl"
 #define DEFAULT_SETTINGS_WSIZE astro::Vec2<int>(640, 480)
 #define DEFAULT_SETTINGS_VSYNC false
@@ -15,6 +15,7 @@
 #define DEFAULT_SETTINGS_MOUSE_MODE "raw"
 
 static astro::Core::SettingsFile sfile; 
+static astro::Indexing::Indexer indexer;
 
 astro::Core::SettingsFile astro::Core::getSettingsFile(){
     return sfile;
@@ -29,6 +30,10 @@ void __ASTRO_init_job();
 void __ASTRO_update_job();
 void __ASTRO_end_job();
 
+
+astro::Indexing::Indexer *astro::Core::getIndexer(){
+    return &indexer;
+}
 
 void astro::Core::init(){
     // read settings file
@@ -51,6 +56,13 @@ void astro::Core::init(){
     __ASTRO_init_log();
     __ASTRO_init_job();
     astro::log("astro ~> *\n");
+
+    astro::spawn([](astro::Job &ctx){
+	    auto r = indexer.scan("redbias");    
+        if(r.val == ResultType::Failure){
+            astro::log("Indexer failed: %s\n", r.msg.size());
+        }
+    }, true, false, true);
 }
 
 void astro::Core::onEnd(){

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 project(astro CXX C)
 
@@ -16,6 +16,8 @@ set (astro_src
     src/engine/Core.cpp
     src/engine/Input.cpp
     src/engine/common/3rdparty/Jzon.cpp
+    src/engine/common/3rdparty/MD5.cpp
+    src/engine/common/Indexer.cpp
     src/engine/common/Log.cpp
     src/engine/common/Tools.cpp    
     src/engine/common/Job.cpp)

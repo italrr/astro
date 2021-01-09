@@ -37,7 +37,7 @@
         };
 
         struct Job {
-            // do not change these, ever.
+            // do not change these
             int id;
             uint8 status;
             uint64 initTime;
