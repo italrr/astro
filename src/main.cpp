@@ -23,6 +23,8 @@ int main(int argc, const char *argv[]){
 		astro::Gfx::update();
 		astro::Core::update();
 
+
+
 	}
 
 	astro::Gfx::onEnd();

@@ -26,7 +26,9 @@ struct _VulkanCtx {
 };
 static _VulkanCtx ctx = _VulkanCtx();
 
-astro::Result astro::Gfx::RenderEngineVulkan::init(){
+std::shared_ptr<astro::Result> astro::Gfx::RenderEngineVulkan::init(){
+    auto result = astro::makeResult(astro::ResultType::Success);
+
     // app info
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -53,36 +55,40 @@ astro::Result astro::Gfx::RenderEngineVulkan::init(){
     createInfo.enabledLayerCount = 0;
 
     if (ctx.pfnCreateInstance(&createInfo, NULL, &ctx.instance) != VK_SUCCESS) {
-        return astro::Result(ResultType::Failure, "failed to create Vulkan instance");
+        result->setFailure("failed to create Vulkan instance");
+        return result;
     }    
 
-    return astro::Result(ResultType::Success);
+    return result;
 }
 
-astro::Result astro::Gfx::RenderEngineVulkan::end(){
+std::shared_ptr<astro::Result> astro::Gfx::RenderEngineVulkan::end(){
     if(ctx.surface != NULL){
         ctx.pfnDestroySurfaceKHR(ctx.instance, ctx.surface, NULL); 
     }
     if(ctx.instance != NULL){
         ctx.pfnDestroyInstance(ctx.instance, NULL); 
     }
-    return astro::Result(ResultType::Success);
+    return astro::makeResult(astro::ResultType::Success);
 }
 
-astro::Result astro::Gfx::RenderEngineVulkan::createWindow(const std::string &title, Vec2<int> size){
+std::shared_ptr<astro::Result> astro::Gfx::RenderEngineVulkan::createWindow(const std::string &title, Vec2<int> size){
+    auto result = astro::makeResult(astro::ResultType::Success);
     GLFWwindow* window;
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window = glfwCreateWindow(size.x, size.y, title.c_str(), NULL, NULL);
     if (!window){
-        return astro::Result(ResultType::Failure, "failed to open window");
+        result->setFailure("failed to open window");
+        return result;
     }
     this->window = window;
     glfwCreateWindowSurface(ctx.instance, window, NULL, &ctx.surface);
-    return astro::Result(ResultType::Success, window);
+    result->set((void*)this->window);
+    return result;
 }
 
-astro::Result astro::Gfx::RenderEngineVulkan::isSupported(){
-    return astro::Result(ResultType::Success);
+std::shared_ptr<astro::Result>  astro::Gfx::RenderEngineVulkan::isSupported(){
+    return astro::makeResult(ResultType::Success);
 }
 
 

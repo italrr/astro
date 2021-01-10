@@ -1,5 +1,5 @@
-#ifndef ASTRO_RESOURCES_HPP
-    #define ASTRO_RESOURCES_HPP
+#ifndef ASTRO_INDEXING_HPP
+    #define ASTRO_INDEXING_HPP
 
     #include "Type.hpp"
     #include "Result.hpp"
@@ -30,7 +30,7 @@
             struct Indexer {
                 std::mutex accesMutex;
                 std::unordered_map<std::string, std::shared_ptr<Index>> resources;
-                astro::Result scan(const std::string &root);
+                std::shared_ptr<astro::Result> scan(const std::string &root);
                 std::shared_ptr<Index> findByHash(const std::string &hash);
                 std::shared_ptr<Index> findByName(const std::string &name);
             };

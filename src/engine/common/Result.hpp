@@ -1,6 +1,7 @@
 #ifndef ASTRO_RESULT_HPP
     #define ASTRO_RESULT_HPP
 
+    #include <memory>
     #include "Type.hpp"
 
     namespace astro {
@@ -26,49 +27,39 @@
             }
         }
 
+        struct Job;
+        struct SmallPacket;
         struct  Result {
+            bool done;
             int val;
             std::string msg;
-            void *payload;
-            size_t psize; // payload size (in bytes)
-            Result(){
-                this->val = ResultType::noop;
-                this->msg = "";
-                this->payload = NULL;
-                this->psize = 0;
-            }
-            Result(int val, const std::string &msg, void *payload){
-                set(val, msg, payload);
-            }
-            Result(int val, const std::string &msg){
-                set(val, msg, NULL);
-            }            
-            Result(int val){
-                set(val, "", NULL);
-            }
-            Result(int val, void *payload){
-                set(val, "", payload);
-            }            
-            void set(int val, const std::string &msg, void *payload){
-                this->val = val;
-                this->msg = msg;
-                this->payload = payload;
-            }
-            void set(int val, const std::string &msg = ""){
-                this->val = val;
-                this->msg = msg;
-                this->payload = NULL;
-            }            
-            std::string str() const {
-                return ResultType::name(val) + (this->msg.length() > 0 ? " "+this->msg : "");
-            }
-            operator std::string() const {
-                return str();
-            };
-            operator bool() const {
-                return val == ResultType::Success;
-            }
+            std::shared_ptr<astro::SmallPacket> payload;
+            std::shared_ptr<astro::Job> job;
+            void *ref;
+            Result(const astro::Result &result);
+            Result();
+            Result(int val, const std::string &msg);
+            Result(int val, const std::shared_ptr<astro::SmallPacket> &payload);
+            Result(int val, const std::shared_ptr<astro::Job> &job);                          
+            Result(int val);
+            void set(int val, const std::string &msg = "");
+            void set(void *ref);
+            void set(const std::shared_ptr<astro::Job> &job);
+            void set(const std::shared_ptr<astro::SmallPacket> &payload);
+            void setFailure(const std::string &msg = "");
+            void setSuccess(const std::string &msg = "");
+            bool isSuccessful();      
+            std::string str() const;
+            operator std::string() const;
+            operator bool() const;
         };
+
+        std::shared_ptr<astro::Result> makeResult();
+
+        std::shared_ptr<astro::Result> makeResult(int val, const std::string &msg = "");
+        std::shared_ptr<astro::Result> makeResult(int val, const std::shared_ptr<astro::Job> &job);
+
+        std::shared_ptr<astro::Result> makeResult(int val, const std::shared_ptr<astro::SmallPacket> &payload);
 
     }
 

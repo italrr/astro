@@ -2,10 +2,9 @@
 #include "Tools.hpp"
 #include "Log.hpp"
 
-astro::Result astro::Indexing::Indexer::scan(const std::string &root){
-    astro::Result result(astro::ResultType::noop);
+std::shared_ptr<astro::Result> astro::Indexing::Indexer::scan(const std::string &root){
+    auto result = astro::makeResult();
     std::unique_lock<std::mutex> lk(accesMutex);
-    
     int found = 0;
     int bytes = 0;
     for(int i = 0; i < INDEX_STRUCTURE.size(); ++i){
@@ -14,16 +13,16 @@ astro::Result astro::Indexing::Indexer::scan(const std::string &root){
         astro::File::list(path, "", astro::File::ListType::Any, true, files);
         for(int j = 0; j < files.size(); ++j){
             auto res = std::make_shared<astro::Indexing::Index>(astro::Indexing::Index());
-            res->read(res->fname = files[i]);
-            this->resources[res->hash] =res;
+            res->read(files[j]);
+            this->resources[res->hash] = res;
             bytes += res->size;
             ++found;
         }
     }
     if(found > 0){
-        result.set(ResultType::Success);
+        result->set(ResultType::Success);
     }
-    astro::log("Resource manager: found %i resource(s) | total %i byte(s)\n", found, bytes);
+    astro::log("[IND] found %i files(s) | total %i byte(s)\n", found, bytes);
     lk.unlock();
     return result;
 }
@@ -58,7 +57,7 @@ void astro::Indexing::Index::read(const std::string &path){
     this->path = path;
     this->size = File::size(path);
     this->fname = File::filename(path);
-    this->hash = File::md5(path);
+    this->hash = Hash::md5(path);
     this->autotag();   
 }
 

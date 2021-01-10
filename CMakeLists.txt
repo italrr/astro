@@ -18,6 +18,8 @@ set (astro_src
     src/engine/common/3rdparty/Jzon.cpp
     src/engine/common/3rdparty/MD5.cpp
     src/engine/common/Indexer.cpp
+    src/engine/common/Resource.cpp
+    src/engine/common/Result.cpp
     src/engine/common/Log.cpp
     src/engine/common/Tools.cpp    
     src/engine/common/Job.cpp)

@@ -95,10 +95,10 @@
 					window = NULL;
 				}
 				int type;
-				virtual astro::Result init(){ return Result(ResultType::Success); }
-				virtual astro::Result end(){ return Result(ResultType::Success); }
-				virtual astro::Result createWindow(const std::string &title, Vec2<int> size){ return Result(ResultType::Success); }
-				virtual astro::Result isSupported(){ return Result(ResultType::Success); }
+				virtual std::shared_ptr<astro::Result> init(){ return astro::makeResult(ResultType::Success); }
+				virtual std::shared_ptr<astro::Result> end(){ return astro::makeResult(ResultType::Success); }
+				virtual std::shared_ptr<astro::Result> createWindow(const std::string &title, Vec2<int> size){ return astro::makeResult(ResultType::Success); }
+				virtual std::shared_ptr<astro::Result> isSupported(){ return astro::makeResult(ResultType::Success); }
 				virtual int render(){ return 0; } 
 				virtual void readjustViewport(const astro::Vec2<int> &origin, const astro::Vec2<int> &size) { return; }
 				virtual std::shared_ptr<astro::Gfx::RenderLayer> addRenderLayer(astro::Gfx::RenderLayerType type, const std::string &tag, int order = -1);

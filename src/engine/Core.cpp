@@ -59,10 +59,10 @@ void astro::Core::init(){
 
     astro::spawn([](astro::Job &ctx){
 	    auto r = indexer.scan("redbias");    
-        if(r.val == ResultType::Failure){
-            astro::log("Indexer failed: %s\n", r.msg.size());
+        if(r->val == ResultType::Failure){
+            astro::log("[IND] failed: %s\n", r->msg.c_str());
         }
-    }, true, false, true);
+    }, astro::JobSpec(true, false, true));
 }
 
 void astro::Core::onEnd(){

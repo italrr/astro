@@ -2,9 +2,9 @@
 #include <vector>
 #include <map>
 
-#include "Tools.hpp"
 #include "Log.hpp"
 #include "Job.hpp"
+#include "Tools.hpp"
 
 
 /*
@@ -85,7 +85,7 @@ struct _Scheduler {
         int id = generateId();
         std::shared_ptr<astro::Job> handle = std::shared_ptr<astro::Job>(new astro::Job());
         handle->id = id;
-        handle->status = astro::JobStatus::Running;
+        handle->status = astro::JobStatus::Waiting;
         handle->spec = spec;
         _Job job = _Job();
         job.id = id;
@@ -106,11 +106,82 @@ struct _Scheduler {
         return handle;
     }
 
+
+    std::vector<std::shared_ptr<astro::Job>> findJobs(const std::vector<std::string> &tags, int minmatch = 1){
+        std::vector<std::shared_ptr<astro::Job>> jobs;
+        pthread_mutex_lock(&poolMutex);
+        int matches = 0;
+        auto findMatches = [](const std::vector<std::string> &from, const std::vector<std::string> &tags){
+            int n = 0;
+            if(from.size() == 0){
+                return n;
+            }
+            for(int i = 0; i < from.size(); ++i){
+                for(int j = 0; j < tags.size(); ++j){
+                    if(astro::String::toLower(from[i]) == astro::String::toLower(tags[j])){
+                        ++n;
+                    }
+                }
+            }
+            return n;
+        };
+        for(auto &it : pool){
+            auto &j = it.second.handle;
+            int nmatches = findMatches(j->spec.tags, tags);
+            if(nmatches >= minmatch){
+                jobs.push_back(j);
+            }
+        }
+        pthread_mutex_unlock(&poolMutex);        
+        return jobs;
+    }
+
+    std::shared_ptr<astro::Job> findJob(const std::vector<std::string> &tags, int minmatch = 1){
+        auto job = std::shared_ptr<astro::Job>(NULL);
+        pthread_mutex_lock(&poolMutex);
+        int matches = 0;
+        auto findMatches = [](const std::vector<std::string> &from, const std::vector<std::string> &tags){
+            int n = 0;
+            if(from.size() == 0){
+                return n;
+            }
+            for(int i = 0; i < from.size(); ++i){
+                for(int j = 0; j < tags.size(); ++j){
+                    if(astro::String::toLower(from[i]) == astro::String::toLower(tags[j])){
+                        ++n;
+                    }
+                }
+            }
+            return n;
+        };
+        for(auto &it : pool){
+            auto &j = it.second.handle;
+            int nmatches = findMatches(j->spec.tags, tags);
+            if(nmatches >= minmatch){
+                job = j;
+                break;
+            }
+        }
+        pthread_mutex_unlock(&poolMutex);        
+        return job;
+    }
+
+    std::shared_ptr<astro::Job> findJob(int id){
+        auto job = std::shared_ptr<astro::Job>(NULL);
+        pthread_mutex_lock(&poolMutex);
+        auto it = pool.find(id);
+        if(it != pool.end()){
+            job = it->second.handle;
+        }
+        pthread_mutex_unlock(&poolMutex);        
+        return job;
+    }
+
     std::shared_ptr<astro::Job> hook(int lead, std::function<void(astro::Job &ctx)> funct, const astro::JobSpec &spec){
         int id = generateId();
         std::shared_ptr<astro::Job> handle = std::shared_ptr<astro::Job>(new astro::Job());
         handle->id = id;
-        handle->status = astro::JobStatus::Running;
+        handle->status = astro::JobStatus::Waiting;
         handle->spec = spec;
         _Job job = _Job();
         job.id = id;
@@ -126,6 +197,7 @@ struct _Scheduler {
             it->second.hooked = id;
             jref.lead = lead;
             handle->status = astro::JobStatus::Waiting;
+            handle->payload = it->second.handle->payload; // inherit payload from lead
         }else{
             astro::log("[JOB] failed to hook job to non-existing job id %i. starting it right away instead...\n", lead);
         }
@@ -209,6 +281,10 @@ void astro::Job::stop(){
     sch.stop(this);
 }
 
+astro::Job::Job(){
+    this->payload = std::make_shared<astro::SmallPacket>(astro::SmallPacket());
+}
+
 std::shared_ptr<astro::Job> astro::Job::hook(std::function<void(astro::Job &ctx)> funct, bool threaded){
     astro::JobSpec spec;
     spec.looped = false;
@@ -247,6 +323,18 @@ std::shared_ptr<astro::Job> astro::spawn(std::function<void(astro::Job &ctx)> fu
 
 std::shared_ptr<astro::Job> astro::spawn(std::function<void(astro::Job &ctx)> funct, const astro::JobSpec &spec){
     return sch.spawn(funct, spec);
+}
+
+std::vector<std::shared_ptr<astro::Job>> astro::findJobs(const std::vector<std::string> &tags, int minmatch){
+    return sch.findJobs(tags, minmatch);
+}
+
+std::shared_ptr<astro::Job> astro::findJob(const std::vector<std::string> &tags, int minmatch){
+    return sch.findJob(tags, minmatch);
+}
+
+std::shared_ptr<astro::Job> astro::findJob(int id){
+    return sch.findJob(id);
 }
 
 /*

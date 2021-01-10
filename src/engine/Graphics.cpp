@@ -146,18 +146,18 @@ void astro::Gfx::init(RenderInitSettings &sett){
     glfwWindowHint(GLFW_RESIZABLE, sett.resizeable ? GL_TRUE : GL_FALSE);
     auto initR = ctx.render->init();
     if (!initR){
-        astro::log("[GFX] failure initializing renderer: %s\n", initR.msg.c_str());
+        astro::log("[GFX] failure initializing renderer: %s\n", initR->msg.c_str());
         astro::Core::exit(1);
         return;
     }
 
     auto windowR = ctx.render->createWindow(ctx.title, ctx.size);
     if (!windowR){
-        astro::log("[GFX] failure opening window: %s\n", windowR.msg.c_str());
+        astro::log("[GFX] failure opening window: %s\n", windowR->msg.c_str());
         astro::Core::exit(1);
         return;
     }
-    ctx.window = (GLFWwindow*)windowR.payload;
+    ctx.window = (GLFWwindow*)windowR->ref;
     __ASTRO_init_input(ctx.window);
     glfwSetFramebufferSizeCallback(ctx.window, frameBufferResize);  
     signal(SIGINT, ctrlC); // catch ctrl+c to start proper shut down (it fails sometimes though)

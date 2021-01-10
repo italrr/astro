@@ -12,10 +12,10 @@
                     this->type = RenderEngineType::Vulkan;
                 }
 
-				astro::Result init();
-				astro::Result end();
-				astro::Result createWindow(const std::string &title, Vec2<int> size);
-				astro::Result isSupported();
+				std::shared_ptr<astro::Result> init();
+				std::shared_ptr<astro::Result> end();
+				std::shared_ptr<astro::Result> createWindow(const std::string &title, Vec2<int> size);
+				std::shared_ptr<astro::Result> isSupported();
                 int render();
 
             };
