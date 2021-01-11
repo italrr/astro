@@ -8,19 +8,20 @@ std::shared_ptr<astro::Result> astro::Resource::ResourceManager::load(const std:
         result->setFailure("no file provided");
         return result;
     }
-    std::unique_lock<std::mutex> lk(accesMutex);
-    result->job = astro::spawn([&](astro::Job &ctx){
+    result->job = astro::spawn([&, holder, result, file](astro::Job &ctx){
+        ctx.spec.result = result;
+        std::unique_lock<std::mutex> lk(accesMutex);
         auto r = holder->load(file);
         if(r->isSuccessful()){
             holder->id = ++lastId;
             this->resources[holder->id] = holder;
             result->setSuccess(String::format("loaded '%s'", file->path.c_str()));
-            ctx.payload->write(&holder->id, sizeof(holder->id));
+            ctx.spec.payload->write(&holder->id, sizeof(holder->id));
         }else{
             result->setFailure(String::format("failed to load '%s': %s", file->path.c_str(), r->msg.c_str()));
         }
+        lk.unlock();
     }, astro::JobSpec(true, false, true, {"resource_load", file->fname}));
-    lk.unlock();
     return result;
 }
 

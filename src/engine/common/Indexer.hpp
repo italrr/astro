@@ -28,6 +28,7 @@
             };
 
             struct Indexer {
+                std::string path;
                 std::mutex accesMutex;
                 std::unordered_map<std::string, std::shared_ptr<Index>> resources;
                 std::shared_ptr<astro::Result> scan(const std::string &root);

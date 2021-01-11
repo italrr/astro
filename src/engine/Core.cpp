@@ -16,6 +16,7 @@
 
 static astro::Core::SettingsFile sfile; 
 static astro::Indexing::Indexer indexer;
+static astro::Resource::ResourceManager rscmng;
 
 astro::Core::SettingsFile astro::Core::getSettingsFile(){
     return sfile;
@@ -33,6 +34,10 @@ void __ASTRO_end_job();
 
 astro::Indexing::Indexer *astro::Core::getIndexer(){
     return &indexer;
+}
+
+astro::Resource::ResourceManager *astro::Core::getResourceMngr(){
+    return &rscmng;
 }
 
 void astro::Core::init(){
@@ -57,12 +62,21 @@ void astro::Core::init(){
     __ASTRO_init_job();
     astro::log("astro ~> *\n");
 
-    astro::spawn([](astro::Job &ctx){
-	    auto r = indexer.scan("redbias");    
-        if(r->val == ResultType::Failure){
-            astro::log("[IND] failed: %s\n", r->msg.c_str());
+    // scan directories
+    indexer.scan("redbias")->job->hook([&](astro::Job &ctx){
+        auto file = indexer.findByName("b_primitive_f.glsl");
+        if(file.get() != NULL){
+            
+            auto result = rscmng.load(file, std::make_shared<astro::Resource::Resource>(astro::Resource::Resource()));
+            result->job->hook([&,result](astro::Job &ctx){
+
+                astro::log("%s\n", result->msg.c_str());
+
+
+            }, true, false, true);
+
         }
-    }, astro::JobSpec(true, false, true));
+    }, true, false, true);
 }
 
 void astro::Core::onEnd(){

@@ -6,6 +6,7 @@
     #include "common/Log.hpp"
     #include "common/Job.hpp"
     #include "common/Indexer.hpp"
+    #include "common/Resource.hpp"
 
     namespace astro {
 
@@ -57,6 +58,7 @@
             void update();
             void onEnd();
             astro::Indexing::Indexer *getIndexer();
+            astro::Resource::ResourceManager *getResourceMngr();
             // this is non-async
             astro::Core::SettingsFile getSettingsFile();
         }

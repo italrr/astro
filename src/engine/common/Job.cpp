@@ -197,7 +197,7 @@ struct _Scheduler {
             it->second.hooked = id;
             jref.lead = lead;
             handle->status = astro::JobStatus::Waiting;
-            handle->payload = it->second.handle->payload; // inherit payload from lead
+            handle->spec.payload = it->second.handle->spec.payload; // inherit payload from lead
         }else{
             astro::log("[JOB] failed to hook job to non-existing job id %i. starting it right away instead...\n", lead);
         }
@@ -282,7 +282,7 @@ void astro::Job::stop(){
 }
 
 astro::Job::Job(){
-    this->payload = std::make_shared<astro::SmallPacket>(astro::SmallPacket());
+    
 }
 
 std::shared_ptr<astro::Job> astro::Job::hook(std::function<void(astro::Job &ctx)> funct, bool threaded){

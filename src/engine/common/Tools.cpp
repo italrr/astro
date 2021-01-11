@@ -92,7 +92,7 @@ namespace astro {
 		}
 
 		std::string filename(const std::string &path){
-			int k = path.rfind("/");
+			int k = path.rfind(File::dirSep());
 			return k != -1 ? path.substr(k+1, path.length()-1) : path;			
 		}
 
@@ -173,12 +173,12 @@ std::vector<std::string> astro::String::split(const std::string &str, const std:
 }
 
 std::string astro::String::format(const std::string &_str, ...){
-	char buffer[1024];
-    va_list arg;
-    va_start (arg, _str);
-	sprintf (buffer, _str.c_str(), arg);
-    va_end (arg);
-	return std::string(buffer);	
+	va_list arglist;
+	char buff[1024];
+	va_start(arglist, _str);
+	vsnprintf(buff, sizeof(buff), _str.c_str(), arglist);
+	va_end( arglist );
+	return std::string(buff);
 }
 
 /* 

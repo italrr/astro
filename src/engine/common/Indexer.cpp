@@ -1,29 +1,30 @@
 #include "Indexer.hpp"
 #include "Tools.hpp"
 #include "Log.hpp"
+#include "Job.hpp"
 
 std::shared_ptr<astro::Result> astro::Indexing::Indexer::scan(const std::string &root){
-    auto result = astro::makeResult();
-    std::unique_lock<std::mutex> lk(accesMutex);
-    int found = 0;
-    int bytes = 0;
-    for(int i = 0; i < INDEX_STRUCTURE.size(); ++i){
-        std::string path = root+astro::File::dirSep()+INDEX_STRUCTURE[i];
-        std::vector<std::string> files;
-        astro::File::list(path, "", astro::File::ListType::Any, true, files);
-        for(int j = 0; j < files.size(); ++j){
-            auto res = std::make_shared<astro::Indexing::Index>(astro::Indexing::Index());
-            res->read(files[j]);
-            this->resources[res->hash] = res;
-            bytes += res->size;
-            ++found;
+    auto result = astro::makeResult(astro::ResultType::Waiting);
+    result->job = astro::spawn([&, root, result](astro::Job &ctx){
+        std::unique_lock<std::mutex> lk(accesMutex);
+        int found = 0;
+        int bytes = 0;
+        for(int i = 0; i < INDEX_STRUCTURE.size(); ++i){
+            std::string path = root+astro::File::dirSep()+INDEX_STRUCTURE[i];
+            std::vector<std::string> files;
+            astro::File::list(path, "", astro::File::ListType::Any, true, files);
+            for(int j = 0; j < files.size(); ++j){
+                auto res = std::make_shared<astro::Indexing::Index>(astro::Indexing::Index());
+                res->read(files[j]);
+                this->resources[res->hash] = res;
+                bytes += res->size;
+                ++found;
+            }
         }
-    }
-    if(found > 0){
         result->set(ResultType::Success);
-    }
-    astro::log("[IND] found %i files(s) | total %i byte(s)\n", found, bytes);
-    lk.unlock();
+        astro::log("[IND] found %i files(s) | total %i byte(s)\n", found, bytes);
+        lk.unlock();
+    }, astro::JobSpec(true, false, true, {"indexing", root}));
     return result;
 }
 

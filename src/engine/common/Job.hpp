@@ -6,6 +6,7 @@
 
     #include "Type.hpp"
     #include "Tools.hpp"
+    #include "Result.hpp"
 
     namespace astro {
 
@@ -13,17 +14,21 @@
             bool looped;
             bool lowLatency;
             bool threaded;
+            std::shared_ptr<astro::SmallPacket> payload;
             std::vector<std::string> tags;
+            std::shared_ptr<astro::Result> result;
             JobSpec(){
-                looped = false;
-                lowLatency = false;
-                threaded = true;
+                this->looped = false;
+                this->lowLatency = false;
+                this->threaded = true;
+                this->payload = std::make_shared<astro::SmallPacket>(astro::SmallPacket());
             }
             JobSpec(bool threaded, bool looped, bool lowLatency, const std::vector<std::string> &tags = {}){
                 this->threaded = threaded;
                 this->looped = looped;
                 this->lowLatency = lowLatency;
                 this->tags = tags;
+                this->payload = std::make_shared<astro::SmallPacket>(astro::SmallPacket());
             }
             bool hasTag(const std::string &tag){
                 for(int i = 0; i < this->tags.size(); ++i){
@@ -48,7 +53,6 @@
             uint8 status;
             uint64 initTime;
             astro::JobSpec spec;
-            std::shared_ptr<astro::SmallPacket> payload;
             // interfacing
             void stop();
             Job();

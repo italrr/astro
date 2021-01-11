@@ -34,7 +34,7 @@
                     type = ResourceType::NONE;
                 }
                 virtual std::shared_ptr<astro::Result> load(const std::shared_ptr<astro::Indexing::Index> &file){
-                    return astro::makeResult();
+                    return astro::makeResult(astro::ResultType::Success);
                 }
             };
 
