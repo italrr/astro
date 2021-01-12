@@ -16,6 +16,8 @@
 				std::shared_ptr<astro::Result> end();
 				std::shared_ptr<astro::Result> createWindow(const std::string &title, Vec2<int> size);
 				std::shared_ptr<astro::Result> isSupported();
+                std::shared_ptr<astro::Result> compileShader(const std::string &vert, const std::string &frag);
+                std::shared_ptr<astro::Result> deleteShader(int id);
                 int render();
                 void readjustViewport(const astro::Vec2<int> &origin, const astro::Vec2<int> &size);
 

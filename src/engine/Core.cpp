@@ -4,6 +4,7 @@
 #include "common/Log.hpp"
 #include "common/Tools.hpp"
 #include "Core.hpp"
+#include "render/Shader.hpp"
 
 #define DEFAULT_SETTINGS_FILE "cfg/settings.json"
 #define DEFAULT_SETTINGS_BACKEND "opengl"
@@ -67,13 +68,13 @@ void astro::Core::init(){
         auto file = indexer.findByName("b_primitive_f.glsl");
         if(file.get() != NULL){
             
-            auto result = rscmng.load(file, std::make_shared<astro::Resource::Resource>(astro::Resource::Resource()));
-            result->job->hook([&,result](astro::Job &ctx){
-
-                astro::log("%s\n", result->msg.c_str());
-
-
-            }, true, false, true);
+            auto result = rscmng.load(file, std::make_shared<astro::Gfx::Shader>(astro::Gfx::Shader()));
+            result->setOnSuccess([file](const std::shared_ptr<astro::Result> &result){
+                astro::log("loaded shader '%s'\n", file->fname.c_str());
+            });
+            result->setOnFailure([file](const std::shared_ptr<astro::Result> &result){
+                astro::log("failed to load shader shader '%s'\n", result->msg.c_str());
+            });
 
         }
     }, true, false, true);

@@ -47,15 +47,46 @@
             Done
         };
 
+        struct PiggybackJob {
+            std::function<void(astro::Job &ctx)> lambda;
+            std::shared_ptr<PiggybackJob> next;
+            bool stale;
+            PiggybackJob(){
+                next = std::shared_ptr<PiggybackJob>(NULL);
+                stale = false;
+                lambda = [](astro::Job &ctx){
+                    return;
+                };
+            }
+            void set(const std::function<void(astro::Job &ctx)> &lambda){
+                this->lambda = lambda;
+            }
+            bool hasNext(){
+                return next.get() != NULL;
+            }
+            std::shared_ptr<PiggybackJob> hook(const std::function<void(astro::Job &ctx)> &lambda){
+                this->next = std::make_shared<PiggybackJob>(PiggybackJob());
+                this->next->lambda = lambda;
+                return this->next; 
+            }
+        };
+
         struct Job {
             // do not change these
             int id;
             uint8 status;
             uint64 initTime;
             astro::JobSpec spec;
+            std::mutex accesMutex;
+            std::vector<std::shared_ptr<astro::PiggybackJob>> backlog;
+            std::shared_ptr<astro::PiggybackJob> onEnd;
+            std::shared_ptr<astro::PiggybackJob> onStart;
             // interfacing
             void stop();
-            Job();
+            Job();     
+            std::shared_ptr<astro::PiggybackJob> addBacklog(const std::function<void(astro::Job &ctx)> &lambda);   
+            std::shared_ptr<astro::PiggybackJob> setOnEnd(const std::function<void(astro::Job &ctx)> &onEnd);     
+            std::shared_ptr<astro::PiggybackJob> setOnStart(const std::function<void(astro::Job &ctx)> &onStart);
             std::shared_ptr<astro::Job> hook(std::function<void(astro::Job &ctx)> funct, bool threaded);
             std::shared_ptr<astro::Job> hook(std::function<void(astro::Job &ctx)> funct, bool threaded, bool looped, bool lowLatency);
             std::shared_ptr<astro::Job> hook(std::function<void(astro::Job &ctx)> funct, const astro::JobSpec &spec);

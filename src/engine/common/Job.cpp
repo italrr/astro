@@ -37,15 +37,43 @@ static void *thread_job(void *ctx){
         return NULL;
     }
     auto &spec = job->handle->spec;
+    // std::vector<std::shared_ptr<astro::PiggybackJob>> backlog;
+    // run onStart
     job->handle->initTime = astro::ticks();
+    std::unique_lock<std::mutex> lkstart(job->handle->accesMutex);
+    job->handle->onStart->lambda(*job->handle.get());
+    if(job->handle->onStart->hasNext()){
+        job->handle->backlog.push_back(job->handle->onStart->next);
+    }
+    lkstart.unlock();      
     do {
+        // run backlog
+        std::unique_lock<std::mutex> lk(job->handle->accesMutex);
+        if(job->handle->backlog.size() > 0){
+            std::vector<std::shared_ptr<astro::PiggybackJob>> backlog;
+            for(int i = 0; i < job->handle->backlog.size(); ++i){
+                job->handle->backlog[i]->lambda(*job->handle.get());
+                if(job->handle->backlog[i]->hasNext()){
+                    backlog.push_back(job->handle->backlog[i]->next);
+                }
+            }
+            job->handle->backlog = backlog;
+        }
+        lk.unlock();     
+        // run thread   
         job->funct(*job->handle.get());
         if(spec.looped && !spec.lowLatency){
             astro::sleep(16);
         }
     } while (spec.looped && job->handle->status == astro::JobStatus::Running);
+    // run onEnd
+    std::unique_lock<std::mutex> lkend(job->handle->accesMutex);
+    job->handle->onEnd->lambda(*job->handle.get());   
+    if(job->handle->onEnd->hasNext()){
+        job->handle->backlog.push_back(job->handle->onEnd->next);
+    }     
+    lkend.unlock();        
     job->handle->status = astro::JobStatus::Done;
-    // TODO: call hook
     pthread_exit(0);
     return NULL;
 }
@@ -282,7 +310,35 @@ void astro::Job::stop(){
 }
 
 astro::Job::Job(){
-    
+    onEnd = std::make_shared<astro::PiggybackJob>(astro::PiggybackJob());
+    onStart = std::make_shared<astro::PiggybackJob>(astro::PiggybackJob());
+}
+
+std::shared_ptr<astro::PiggybackJob> astro::Job::addBacklog(const std::function<void(astro::Job &ctx)> &lambda){
+    std::unique_lock<std::mutex> lk(accesMutex);
+    auto pgb = std::make_shared<astro::PiggybackJob>(astro::PiggybackJob());
+    pgb->set(lambda);
+    this->backlog.push_back(pgb);
+    lk.unlock();    
+    return pgb;
+}
+
+std::shared_ptr<astro::PiggybackJob> astro::Job::setOnEnd(const std::function<void(astro::Job &ctx)> &onEnd){
+    std::unique_lock<std::mutex> lk(accesMutex);
+    auto pgb = std::make_shared<astro::PiggybackJob>(astro::PiggybackJob());
+    pgb->set(onEnd);
+    this->onEnd = pgb;
+    lk.unlock();   
+    return pgb; 
+}
+
+std::shared_ptr<astro::PiggybackJob> astro::Job::setOnStart(const std::function<void(astro::Job &ctx)> &onStart){
+    std::unique_lock<std::mutex> lk(accesMutex);
+    auto pgb = std::make_shared<astro::PiggybackJob>(astro::PiggybackJob());
+    pgb->set(onStart);
+    this->onStart = pgb;
+    lk.unlock();   
+    return pgb; 
 }
 
 std::shared_ptr<astro::Job> astro::Job::hook(std::function<void(astro::Job &ctx)> funct, bool threaded){

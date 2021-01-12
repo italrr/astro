@@ -100,6 +100,8 @@
 				virtual std::shared_ptr<astro::Result> createWindow(const std::string &title, Vec2<int> size){ return astro::makeResult(ResultType::Success); }
 				virtual std::shared_ptr<astro::Result> isSupported(){ return astro::makeResult(ResultType::Success); }
 				virtual int render(){ return 0; } 
+				virtual std::shared_ptr<astro::Result> compileShader(const std::string &vert, const std::string &frag){ return astro::makeResult(ResultType::Success); }
+				virtual std::shared_ptr<astro::Result> deleteShader(int id){ return astro::makeResult(ResultType::Success); }
 				virtual void readjustViewport(const astro::Vec2<int> &origin, const astro::Vec2<int> &size) { return; }
 				virtual std::shared_ptr<astro::Gfx::RenderLayer> addRenderLayer(astro::Gfx::RenderLayerType type, const std::string &tag, int order = -1);
 			};
@@ -131,6 +133,8 @@
 			bool isRunning();
 			void onEnd();
 			void end();
+			
+			RenderEngine *getRenderEngine();
 
 		}
 	}

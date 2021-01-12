@@ -5,29 +5,37 @@
 int main(int argc, const char *argv[]){
 	
 	astro::Core::init();
-	astro::Gfx::init("astro", astro::Gfx::RenderEngineType::OpenGL);
-	// uint64 start = astro::ticks();
+	bool started = false;
 	
-	// int order = 0;
-	// auto first = astro::spawn([&](astro::Job &ctx){
-	// 	astro::log("id: %i\n", ++order);
-	// }, false, false, false);
-
-	// for(int i = 0; i < 128; ++i){
-	// 	first = first->hook([&](astro::Job &ctx){
-	// 		astro::log("id: %i\n", ++order);
-	// 	}, false, false, false);
-	// }
-
-	while(astro::Gfx::isRunning()){
+	//
+	// Rendering thread
+	//
+	auto gfxthrd = astro::spawn([&](astro::Job &ctx){ // loop
 		astro::Gfx::update();
+		if(!astro::Gfx::isRunning()){
+			ctx.stop();
+		}		
+	}, astro::JobSpec(true, true, true, {"astro_gfx"}));
+	gfxthrd->setOnStart([&](astro::Job &ctx){ // init
+		astro::Gfx::init("astro", astro::Gfx::RenderEngineType::OpenGL);
+		started = true;		
+	});
+	gfxthrd->setOnEnd([&](astro::Job &ctx){ // end
+		astro::Gfx::onEnd();
+	});
+	// wait for render thread to start
+	while(!started){
 		astro::Core::update();
-
-
-
+		astro::sleep(100); 
 	}
 
-	astro::Gfx::onEnd();
+	//
+	// Main thread
+	//
+	do {
+		astro::Core::update();
+	} while(astro::Gfx::isRunning());
+
 	astro::Core::onEnd();
 	
 	return 0;

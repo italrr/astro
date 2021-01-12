@@ -95,6 +95,10 @@ void astro::Gfx::init(const std::string &title, astro::Vec2<int> size){
     init(sett);
 }
 
+astro::Gfx::RenderEngine *astro::Gfx::getRenderEngine(){
+    return ctx.render;
+}
+
 void astro::Gfx::init(const std::string &title, astro::Gfx::RenderInitSettings &sett){
     sett.title = title;
     init(sett);
