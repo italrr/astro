@@ -23,6 +23,7 @@ set (astro_src
     src/engine/common/Result.cpp
     src/engine/common/Log.cpp
     src/engine/common/Tools.cpp    
+    src/engine/common/Type.cpp  
     src/engine/common/Job.cpp)
 
 add_library(astro_bin ${astro_src})

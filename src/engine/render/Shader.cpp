@@ -49,6 +49,7 @@ std::shared_ptr<astro::Result> astro::Gfx::Shader::load(const std::shared_ptr<as
             auto r = ren->compileShader(this->vertSrc, this->fragSrc);
             result->set(r->val, r->msg);
             if(r->val == ResultType::Success){
+                r->payload->reset();
                 r->payload->read(&shaderId, sizeof(shaderId));
             }
         });

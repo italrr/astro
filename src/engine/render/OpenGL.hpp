@@ -20,6 +20,14 @@
                 std::shared_ptr<astro::Result> deleteShader(int id);
                 int render();
                 void readjustViewport(const astro::Vec2<int> &origin, const astro::Vec2<int> &size);
+                // generators
+                std::shared_ptr<astro::Result> generatePrimVertexBuffer(
+                                                        const std::vector<float> &verts,
+                                                        const std::vector<int> &indices,
+                                                        bool incTex);             
+                std::shared_ptr<astro::Result> generateTexture2D(unsigned char *data, int w, int h);
+                // renders
+                bool renderPrimVertBuffer(astro::Gfx::RenderObject *obj);
 
             };
 

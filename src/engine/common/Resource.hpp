@@ -56,6 +56,11 @@
                     this->loaded = v;
                     lk.unlock();                    
                 }
+                void setFile(const std::shared_ptr<astro::Indexing::Index> &file){
+                    std::unique_lock<std::mutex> lk(accesMutex);
+                    this->file = file;
+                    lk.unlock();                      
+                }
                 virtual std::shared_ptr<astro::Result> unload(){
                     return astro::makeResult(astro::ResultType::Success);
                 }

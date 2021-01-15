@@ -64,20 +64,7 @@ void astro::Core::init(){
     astro::log("astro ~> *\n");
 
     // scan directories
-    indexer.scan("redbias")->job->hook([&](astro::Job &ctx){
-        auto file = indexer.findByName("b_primitive_f.glsl");
-        if(file.get() != NULL){
-            
-            auto result = rscmng.load(file, std::make_shared<astro::Gfx::Shader>(astro::Gfx::Shader()));
-            result->setOnSuccess([file](const std::shared_ptr<astro::Result> &result){
-                astro::log("loaded shader '%s'\n", file->fname.c_str());
-            });
-            result->setOnFailure([file](const std::shared_ptr<astro::Result> &result){
-                astro::log("failed to load shader shader '%s'\n", result->msg.c_str());
-            });
-
-        }
-    }, true, false, true);
+    indexer.scan("redbias");
 }
 
 void astro::Core::onEnd(){

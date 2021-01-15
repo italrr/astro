@@ -66,7 +66,52 @@
                 this->y = c;
                 this->z = c;
             }
-        };        
+        };     
+
+
+		struct Color {
+			void operator=(float c);
+			bool operator<(const astro::Color &v);
+			bool operator>(const astro::Color &v);
+			bool operator<=(const astro::Color &v);
+			bool operator>=(const astro::Color &v);
+			bool operator<(float c);
+			bool operator>(float c);
+			bool operator<=(float c);
+			bool operator>=(float c);
+			bool operator==(float c);
+			bool operator==(const astro::Color &v);
+			bool operator!=(float c);
+			bool operator!=(const Color &v);
+			astro::Color operator/(float c);
+			astro::Color operator/(const astro::Color &v);
+			astro::Color operator*(float c);
+			astro::Color operator*(const astro::Color &v);
+			astro::Color operator+(float c);
+			astro::Color operator+(const astro::Color &v);
+			astro::Color operator-(float c);
+			astro::Color operator-(const astro::Color &v);
+			astro::Color invert();
+			Color(const std::string &hex);
+			Color();
+			Color(const astro::Color &color);
+			Color(float r, float g, float b);
+			Color(float r, float g, float b, float a);
+			Color(float c);
+			Color(float c, float a);
+			void set(float c, float a);			
+			void set(float c);
+			void set(const std::string &hex);
+			void set(float r, float g, float b, float a);
+			void set(const astro::Color &color);
+			float r;
+			float g;
+			float b;
+			float a;		
+			operator std::string();
+			std::string str();
+			std::string hex();
+		};           
     }
 
 #endif

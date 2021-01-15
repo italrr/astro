@@ -9,9 +9,10 @@ std::shared_ptr<astro::Result> astro::Resource::ResourceManager::load(const std:
     std::unique_lock<std::mutex> lk(accesMutex);
     holder->setId(++lastId);
     holder->setLoaded(true);
+    holder->setFile(file);
     this->resources[holder->id] = holder;        
     lk.unlock();
-    auto r = holder->load(file); // we'll expect every time of resource to return a job
+    auto r = holder->load(file);
     r->payload->write(&holder->id, sizeof(holder->id));
     return r;
 }
