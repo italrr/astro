@@ -11,6 +11,8 @@ astro::Color::Color(){
 	g	= 0;
 	b	= 0;
 	a	= 1.0f;
+
+
 }
 
 astro::Color::Color(const astro::Color &c){

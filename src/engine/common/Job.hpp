@@ -76,6 +76,8 @@
             int id;
             uint8 status;
             uint64 initTime;
+            std::vector<std::shared_ptr<astro::Result>> listeners;
+            bool succDeps;
             astro::JobSpec spec;
             std::mutex accesMutex;
             std::vector<std::shared_ptr<astro::PiggybackJob>> backlog;
@@ -99,6 +101,8 @@
         std::shared_ptr<astro::Job> spawn(std::function<void(astro::Job &ctx)> funct, bool threaded);
         std::shared_ptr<astro::Job> spawn(std::function<void(astro::Job &ctx)> funct, bool threaded, bool looped, bool lowLatency);
         std::shared_ptr<astro::Job> spawn(std::function<void(astro::Job &ctx)> funct, const astro::JobSpec &spec);
+
+        std::shared_ptr<astro::Job> expect(const std::vector<std::shared_ptr<astro::Result>> &results, std::function<void(astro::Job &ctx)> funct, bool lowLatency = true);
     }
     
 

@@ -124,7 +124,7 @@ struct _Scheduler {
         pthread_mutex_lock(&poolMutex);
         pool[id] = job;
         if(spec.threaded){
-            int rc  = pthread_create(&job.thread, NULL, thread_job, (void*)&pool[id]);
+            int rc  = pthread_create(&pool[id].thread, NULL, thread_job, (void*)&pool[id]);
             if (rc){
                 astro::log("[JOB] attention: failed to spawn thread id '%i'. return code: '%i'\n", id, rc);
                 handle->status = astro::JobStatus::Stopped;
@@ -133,6 +133,33 @@ struct _Scheduler {
         pthread_mutex_unlock(&poolMutex);
         return handle;
     }
+
+
+    std::shared_ptr<astro::Job> expect(std::function<void(astro::Job &ctx)> funct, const astro::JobSpec &spec, const std::vector<std::shared_ptr<astro::Result>> &listeners){
+        int id = generateId();
+        std::shared_ptr<astro::Job> handle = std::shared_ptr<astro::Job>(new astro::Job());
+        handle->id = id;
+        handle->listeners = listeners;
+        handle->status = astro::JobStatus::Waiting;
+        handle->spec = spec;
+        _Job job = _Job();
+        job.id = id;
+        job.handle = handle;
+        job.hooked = 0;
+        job.lead = 0;
+        job.funct = funct;
+        pthread_mutex_lock(&poolMutex);
+        pool[id] = job;
+        if(spec.threaded){
+            int rc  = pthread_create(&pool[id].thread, NULL, thread_job, (void*)&pool[id]);
+            if (rc){
+                astro::log("[JOB] attention: failed to spawn thread id '%i'. return code: '%i'\n", id, rc);
+                handle->status = astro::JobStatus::Stopped;
+            }            
+        }
+        pthread_mutex_unlock(&poolMutex);
+        return handle;
+    }    
 
 
     std::vector<std::shared_ptr<astro::Job>> findJobs(const std::vector<std::string> &tags, int minmatch = 1){
@@ -261,6 +288,9 @@ struct _Scheduler {
                             job.hooked = 0;
                         }
                     }
+                    if(handle->spec.threaded){
+                        pthread_join(it.second.thread, NULL); 
+                    }                    
                     toRemove.push_back(handle->id);
                     handle->id = 0;
                 } break;
@@ -286,7 +316,7 @@ struct _Scheduler {
         for(int i = 0; i < toRemove.size(); ++i){
             pool.erase(toRemove[i]);
         }
-        if(lock)  pthread_mutex_unlock(&poolMutex);       
+        if(lock) pthread_mutex_unlock(&poolMutex);       
     }
 
     int generateId(){
@@ -312,6 +342,7 @@ void astro::Job::stop(){
 astro::Job::Job(){
     onEnd = std::make_shared<astro::PiggybackJob>(astro::PiggybackJob());
     onStart = std::make_shared<astro::PiggybackJob>(astro::PiggybackJob());
+    succDeps = false;
 }
 
 std::shared_ptr<astro::PiggybackJob> astro::Job::addBacklog(const std::function<void(astro::Job &ctx)> &lambda){
@@ -375,6 +406,33 @@ std::shared_ptr<astro::Job> astro::spawn(std::function<void(astro::Job &ctx)> fu
     spec.threaded = threaded;
     spec.lowLatency = lowLatency;
     return spawn(funct, spec);
+}
+
+std::shared_ptr<astro::Job> astro::expect(const std::vector<std::shared_ptr<astro::Result>> &results, std::function<void(astro::Job &ctx)> funct, bool lowLatency){
+    astro::JobSpec spec;
+    spec.looped = true;
+    spec.threaded = true;
+    spec.lowLatency = lowLatency;
+    return sch.expect([funct](astro::Job &ctx){
+        int t = 0;
+        int allsucc = 0;
+        for(int i = 0 ; i < ctx.listeners.size(); ++i){
+            if(ctx.listeners[i]->done){
+                ++t;
+            }
+            if(ctx.listeners[i]->isSuccessful()){
+                ++allsucc;
+            }
+        }
+        if(t == ctx.listeners.size()){
+            if(allsucc){
+                ctx.succDeps = true;
+            }
+            funct(ctx);
+            ctx.stop();
+        }
+        return;
+    }, spec, results);
 }
 
 std::shared_ptr<astro::Job> astro::spawn(std::function<void(astro::Job &ctx)> funct, const astro::JobSpec &spec){
