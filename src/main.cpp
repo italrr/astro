@@ -13,6 +13,7 @@ int main(int argc, const char *argv[]){
 	auto setRenderIt = [&](){
 		renderIt = true;
 	};
+	auto stt = astro::ticks();
 
 	//
 	// Rendering thread
@@ -21,6 +22,16 @@ int main(int argc, const char *argv[]){
 		if(renderIt){
 			auto gfx = astro::Gfx::getRenderEngine();
 			gfx->objects.push_back(prim);
+
+        	astro::Mat<4, 4, float> transform = astro::MAT4Identity;
+			// transform = transform.translate(astro::Vec3<float>(-0.5f, 0.5f, 0.0f));
+        	transform = transform.rotate((float)astro::Math::rads(astro::ticks()-stt), astro::Vec3<float>(0.0f, 0.0f, 1.0f));
+
+
+			auto shaderattr = std::make_shared<astro::Gfx::ShaderAttrMat4>(astro::Gfx::ShaderAttrMat4(transform, "transform"));
+	
+			prim->transform->shAttrs["transform"] = shaderattr;
+
 		}
 		astro::Gfx::update();
 		if(!astro::Gfx::isRunning()){
@@ -80,7 +91,7 @@ int main(int argc, const char *argv[]){
 			astro::expect({resultSh, resultTex}, [&, rscmng, prim](astro::Job &ctx){
 
 				if(!ctx.succDeps){
-					astro::log("not all jobs were succesful\n");
+					astro::log("not all jobs were successful\n");
 					return;
 				}
 
@@ -93,7 +104,6 @@ int main(int argc, const char *argv[]){
 
 				prim->transform->shader = shader;
 				prim->transform->texture = texture;
-				// prim->transform->shAttrs["p_color"] = std::make_shared<astro::Gfx::ShaderAttrColor>(astro::Gfx::ShaderAttrColor(astro::Color(1.0f, 0.0f, 1.0f, 1.0f), "p_color"));
 				
 				setRenderIt();
 

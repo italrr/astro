@@ -39,7 +39,18 @@
         }
         // math
         namespace Math {
+            static const float PI = 3.14159265358979323846;
             int random(int min, int max);
+            float sqrt(float n);
+            float sin(float n);
+            float cos(float n);
+            float tan(float n);
+            float atan(float y, float x);
+            float rads(float deg);
+            float degs(float rads);
+            Mat<4, 4, float> perspective(float fovy, float aspRatio, float nearPlane, float farPlane);
+            Mat<4, 4, float> orthogonal(float left, float right, float bottom, float top);
+            Mat<4, 4, float> lookAt(const Vec3<float> &pos, const Vec3<float> &dir);        
         }
         // small packet
         static const size_t ASTRO_SMALLPACKET_SIZE = 64;

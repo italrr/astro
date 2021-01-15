@@ -13,7 +13,8 @@
                     VEC3,
                     COLOR,
                     FLOAT,
-                    INT, 
+                    INT,
+                    MAT4, 
                     NONE
                 };
             }
@@ -107,7 +108,22 @@
                 void set(const astro::Color &color){
                     this->color = color;
                 }
-            };                         
+            };   
+
+            struct ShaderAttrMat4 : ShaderAttr {
+                astro::Mat<4, 4, float> mat;
+                ShaderAttrMat4(){
+                    this->type = ShaderAttrType::MAT4;
+                }
+                ShaderAttrMat4(const astro::Mat<4, 4, float> &mat, const std::string &name = ""){
+                    this->type = ShaderAttrType::MAT4;
+                    this->mat = mat;
+                    if(name.length() > 0) this->name = name;
+                }                
+                void set(const astro::Mat<4, 4, float> &mat){
+                    this->mat = mat;
+                }
+            };                                    
 
             struct Shader : astro::Resource::Resource {
                 std::string vertSrc;

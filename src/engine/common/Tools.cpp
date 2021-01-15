@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <dirent.h>
 #include <random>
+#include <cmath>
 #include <mutex>
 
 
@@ -191,6 +192,72 @@ namespace astro {
 			std::mt19937 rng(rd());
 			std::uniform_int_distribution<int> uni(min,max);
 			return uni(rng);			
+		}
+		float sqrt(float n){
+			return std::sqrt(n);
+		}
+		float sin(float n){
+			return std::sin(n);
+		}
+		float cos(float n){
+			return std::cos(n);
+		}
+		float tan(float n){
+			return std::tan(n);
+		}
+		float atan(float y, float x){
+			return std::atan2(y, x);
+		}
+		float rads(float deg){
+			return (deg * PI) / 180.0f;
+		}
+		float degs(float rads){
+			return rads * (180.0f/PI);	
+		}
+		Mat<4, 4, float> perspective(float fovy, float aspRatio, float nearPlane, float farPlane){
+			Mat<4, 4, float> out(0.0f);
+			const float yScale = (float)(1/cos(fovy * PI / 360));
+			const float xScale = yScale / aspRatio;
+			const float fusLength = farPlane - nearPlane;
+			out.mat[0] = xScale;
+			out.mat[5] = yScale;
+			out.mat[10] = -((farPlane + nearPlane) / fusLength);
+			out.mat[11] = -1;
+			out.mat[14] = -((2 * nearPlane * farPlane) / fusLength);
+			return out;
+		}
+		Mat<4, 4, float> orthogonal(float left, float right, float bottom, float top){
+			auto out = MAT4Identity;
+			out.mat[0] = 2 / (right - left);
+			out.mat[5] = 2 / (top - bottom);
+			out.mat[10] = -1;
+			out.mat[12] = - (right + left) / (right - left);
+			out.mat[13] = - (top + bottom) / (top - bottom);
+			return out;
+		}
+		Mat<4, 4, float> lookAt(const Vec3<float> &pos, const Vec3<float> &dir){
+			auto f = dir.normalize();
+			auto u = astro::Vec3<float>(0, 1, 0);
+			auto s = f.cross(u).normalize();
+			u = s.cross(f);
+
+			auto out = MAT4Identity;
+			out.mat[0] = s.x;
+			out.mat[4] = s.y;
+			out.mat[8] = s.z;
+
+			out.mat[1] = u.x;
+			out.mat[5] = u.y;
+			out.mat[9] = u.z;
+
+			out.mat[2] = -f.x;
+			out.mat[6] = -f.y;
+			out.mat[10] = -f.z;
+
+			out.mat[12] = -s.dot(pos);
+			out.mat[13] = -u.dot(pos);
+			out.mat[14] = f.dot(pos);
+			return out;			
 		}
 	}
 }

@@ -137,7 +137,12 @@ bool astro::Gfx::RenderEngineOpenGL::renderPrimVertBuffer(astro::Gfx::RenderObje
                         auto attrvec = std::static_pointer_cast<astro::Gfx::ShaderAttrVec3>(it.second);
                         float v[3] = {attrvec->vec.x, attrvec->vec.y, attrvec->vec.z};
                         glUniform3fv(glGetUniformLocation(prim->transform->shader->shaderId, it.first.c_str()), 1, v);
-                    } break;                                      
+                    } break; 
+                    case ShaderAttrType::MAT4: {
+                        auto attrmat = std::static_pointer_cast<astro::Gfx::ShaderAttrMat4>(it.second);
+                        unsigned int loc = glGetUniformLocation(prim->transform->shader->shaderId, it.first.c_str());
+                        glUniformMatrix4fv(loc, 1, GL_FALSE, attrmat->mat.mat);                        
+                    } break;                                                           
                     default: {
                         astro::log("[GFX] undefined shader type to apply '%s'\n", it.second->type);
                     } break;
