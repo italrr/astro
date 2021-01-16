@@ -22,9 +22,10 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::createWindow(cons
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    // glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
     GLFWwindow* window;
     window = glfwCreateWindow(size.x, size.y, title.c_str(), NULL, NULL);
+    this->size.x = size.x;
+    this->size.y = size.y;
     if (!window){
         result->setFailure("failed to open window");
         return result;
@@ -35,6 +36,7 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::createWindow(cons
     // glfwSwapInterval(0);
     astro::log("[GFX] GPU OpenGL version: %s\n", glGetString(GL_VERSION));
     readjustViewport(astro::Vec2<int>(0), size);
+    glEnable(GL_DEPTH_TEST); 
     result->set((void*)window);
     return result;
 }
@@ -56,31 +58,31 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generatePrimVerte
     for(int i = 0; i < indices.size(); ++i){
         ind[i] = indices[i];
     }              
-    // gen buffer
+    // gen buffers
     unsigned int vbo;
     unsigned int vao;
     unsigned int ebo;
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);  
-    glGenBuffers(1, &ebo);
+    // glGenBuffers(1, &ebo);
     
     glBindVertexArray(vao);
     
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW); // TODO: 'GL_STATIC_DRAW': allow to specify other types?
     
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ind), ind, GL_STATIC_DRAW);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ind), ind, GL_STATIC_DRAW);
 
-    int ncomp = incTex ? 8 : 3;
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, ncomp * sizeof(float), (void*)0);
+    // int ncomp = incTex ? 8 : 3;
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    if(incTex){
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, ncomp * sizeof(float), (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, ncomp * sizeof(float), (void*)(6 * sizeof(float)));
-        glEnableVertexAttribArray(2);
-    }
+    // if(incTex){
+    //     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, ncomp * sizeof(float), (void*)(3 * sizeof(float)));
+    //     glEnableVertexAttribArray(1);
+    //     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, ncomp * sizeof(float), (void*)(6 * sizeof(float)));
+    //     glEnableVertexAttribArray(2);
+    // }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
     glBindVertexArray(0);
@@ -108,6 +110,7 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateTexture2D
 }
 
 bool astro::Gfx::RenderEngineOpenGL::renderPrimVertBuffer(astro::Gfx::RenderObject *obj){
+
     auto prim = static_cast<RObj2DPrimitive*>(obj);
     // bind shader
     if(prim->transform->shader.get() != NULL){
@@ -152,10 +155,16 @@ bool astro::Gfx::RenderEngineOpenGL::renderPrimVertBuffer(astro::Gfx::RenderObje
     }
     // bind texture
     if(prim->transform->texture.get() != NULL){
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, prim->transform->texture->textureId);
     }
+    if(prim->transform->texture2.get() != NULL){
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, prim->transform->texture2->textureId);
+    }    
     glBindVertexArray(prim->vao);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
     return true;
 }
@@ -227,7 +236,7 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::deleteShader(int 
 }
 
 int astro::Gfx::RenderEngineOpenGL::render(){
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.03f, 0.0f, 0.07f, 1.0f);
 
     for(int i = 0; i < objects.size(); ++i){

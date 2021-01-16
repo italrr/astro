@@ -80,6 +80,7 @@
 				astro::Color color;
 				std::shared_ptr<astro::Gfx::Shader> shader;
 				std::shared_ptr<astro::Gfx::Texture> texture;
+				std::shared_ptr<astro::Gfx::Texture> texture2;
 				std::unordered_map<std::string, std::shared_ptr<astro::Gfx::ShaderAttr>> shAttrs;
 			};
 
@@ -121,6 +122,7 @@
 					window = NULL;
 				}
 				int type;
+				astro::Vec2<int> size;
 				virtual std::shared_ptr<astro::Result> init(){ return astro::makeResult(ResultType::Success); }
 				virtual std::shared_ptr<astro::Result> end(){ return astro::makeResult(ResultType::Success); }
 				virtual std::shared_ptr<astro::Result> createWindow(const std::string &title, Vec2<int> size){ return astro::makeResult(ResultType::Success); }
@@ -141,7 +143,14 @@
 				virtual bool renderPrimVertBuffer(astro::Gfx::RenderObject *obj){ return true; }
 			};
 			
-
+			struct Camera {
+				astro::Gfx::RenderEngine *render;
+				astro::Vec3<float> position;
+				astro::Vec3<float> direction;
+				void init(astro::Gfx::RenderEngine *render);
+				void setPosition(const astro::Vec3<float> &position);
+				void lookAt(const astro::Vec3<float> &position);
+			};			
 			struct RenderInitSettings {
 				RenderInitSettings(){
 					size = astro::Vec2<int>(0);

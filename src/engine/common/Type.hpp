@@ -111,16 +111,32 @@
 
 			astro::Vec3<T> normalize() const {
 				astro::Vec3<T> normalized = *this;
-				float sqr = normalized.x * normalized.x + normalized.y * normalized.y + normalized.z * normalized.z;
+				float sqr = normalized.dot(normalized);
 				if(sqr == 1 || sqr == 0){
 					return normalized;
 				}
-				float invrt = 1.0f/astro::Math::sqrt(sqr);
+				float invrt = 1.0f / astro::Math::sqrt(sqr);
 				normalized.x *= invrt;
 				normalized.y *= invrt;
 				normalized.z *= invrt;				
 				return normalized;
 			}	
+
+			astro::Vec3<T> operator*(const astro::Vec3<T> &vec) const{
+				return astro::Vec3<T>(this->x * vec.x, this->y * vec.y, this->z * vec.z);
+			}
+
+			astro::Vec3<T> operator/(const astro::Vec3<T> &vec) const{
+				return astro::Vec3<T>(this->x / vec.x, this->y / vec.y, this->z / vec.z);
+			}
+
+			astro::Vec3<T> operator+(const astro::Vec3<T> &vec) const{
+				return astro::Vec3<T>(this->x + vec.x, this->y + vec.y, this->z + vec.z);
+			}
+
+			astro::Vec3<T> operator-(const astro::Vec3<T> &vec) const{
+				return astro::Vec3<T>(this->x - vec.x, this->y - vec.y, this->z - vec.z);
+			}						
 
 			T dot(const astro::Vec3<T> &vec) const{
 				return this->x * vec.x + this->y * vec.y + this->z * vec.z;
@@ -171,6 +187,22 @@
                 this->z = c;
 				this->w = c;
             }
+
+			astro::Vec4<T> operator*(const astro::Vec4<T> &vec) const{
+				return astro::Vec4<T>(this->x * vec.x, this->y * vec.y, this->z * vec.z, this->w * vec.z);
+			}
+
+			astro::Vec4<T> operator/(const astro::Vec4<T> &vec) const{
+				return astro::Vec4<T>(this->x / vec.x, this->y / vec.y, this->z / vec.z, this->w / vec.z);
+			}
+
+			astro::Vec4<T> operator+(const astro::Vec4<T> &vec) const{
+				return astro::Vec4<T>(this->x + vec.x, this->y + vec.y, this->z + vec.z, this->w + vec.z);
+			}
+
+			astro::Vec4<T> operator-(const astro::Vec4<T> &vec) const{
+				return astro::Vec4<T>(this->x - vec.x, this->y - vec.y, this->z - vec.z, this->w - vec.z);
+			}									
 
 			astro::Vec4<T> normalize() const{
 				astro::Vec4<T> normalized = *this;
@@ -252,14 +284,15 @@
 
 			astro::Mat<4, 4, T> translate(const astro::Vec3<T> &vec) const{
 				Mat<4, 4, T> out(*this);
-				auto &m = out.mat;
-				out.mat[3] 			= m[0] * vec.x + m[0 + 4] * vec.x + m[0 + 4*2] * vec.x + m[0 + 4*2] * vec.x + m[0 + 4*3] * vec.x + m[3];
-				out.mat[3 + 4*1] 	= m[1] * vec.y + m[1 + 4] * vec.y + m[1 + 4*2] * vec.y + m[1 + 4*3] * vec.y + m[3 + 4];
-				out.mat[3 + 4*2] 	= m[2] * vec.z + m[2 + 4] * vec.z + m[2 + 4*2] * vec.z + m[2 + 4*3] * vec.z + m[3 + 4*3];
+				
+				out.mat[12] = vec.x;
+				out.mat[13] = vec.y;
+				out.mat[14] = vec.z;
+
 				return out;
 			}
 
-			astro::Mat<4, 4, T> rotate(T angle, const astro::Vec3<T> &vec) {
+			astro::Mat<4, 4, T> rotate(T angle, const astro::Vec3<T> &vec) const{
 				T const a = angle;
 				T const c = Math::cos(a);
 				T const s = Math::sin(a);
@@ -268,7 +301,8 @@
 				float cdiff = (T)1 - c;
 				astro::Vec3<T> temp(axis.x * cdiff, axis.y * cdiff, axis.z * cdiff);
 
-				Mat<4, 4, T> rotate((T)0);
+				Mat<4, 4, T> rotate(MAT4FIdentity);
+				
 				rotate.mat[0 + 0*4] = c + temp.x * axis.x;
 				rotate.mat[0 + 1*4] = temp.x * axis.y + s * axis.z;
 				rotate.mat[0 + 2*4] = temp.x * axis.z - s * axis.y;
@@ -281,7 +315,7 @@
 				rotate.mat[2 + 1*4] = temp.z * axis.y - s * axis.x;
 				rotate.mat[2 + 2*4] = c + temp.z * axis.z;
 
-				Mat<4, 4, T> out((T)0);
+				Mat<4, 4, T> out(MAT4FIdentity);
 
 				auto &m = this->mat;
 				
@@ -304,7 +338,7 @@
 				return out;
 			}
 
-			astro::Vec4<T> operator*(const astro::Vec4<T> &vec) const	{
+			astro::Vec4<T> operator*(const astro::Vec4<T> &vec) const{
 				astro::Vec4<T> out;
 				for(int i = 0; i < 4; ++i) {
 					switch(i){

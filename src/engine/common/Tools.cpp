@@ -185,6 +185,7 @@ std::string astro::String::format(const std::string &_str, ...){
 /* 
 	MATH
 */
+
 namespace astro {
 	namespace Math {
 		int random(int min, int max){
@@ -209,21 +210,19 @@ namespace astro {
 			return std::atan2(y, x);
 		}
 		float rads(float deg){
-			return (deg * PI) / 180.0f;
+			return deg * 0.01745329251994329576923690768489;
 		}
 		float degs(float rads){
 			return rads * (180.0f/PI);	
 		}
-		Mat<4, 4, float> perspective(float fovy, float aspRatio, float nearPlane, float farPlane){
-			Mat<4, 4, float> out(0.0f);
-			const float yScale = (float)(1/cos(fovy * PI / 360));
-			const float xScale = yScale / aspRatio;
-			const float fusLength = farPlane - nearPlane;
-			out.mat[0] = xScale;
-			out.mat[5] = yScale;
-			out.mat[10] = -((farPlane + nearPlane) / fusLength);
-			out.mat[11] = -1;
-			out.mat[14] = -((2 * nearPlane * farPlane) / fusLength);
+		Mat<4, 4, float> perspective(float fovy, float aspect, float zNear, float zFar){
+			float const tanHalfFovy = astro::Math::tan(fovy / 2.0f);
+			astro::Mat<4, 4, float> out(0.0f);
+			out.mat[0] = 1.0f / (aspect * tanHalfFovy);
+			out.mat[5] = 1.0f / (tanHalfFovy);
+			out.mat[10] = - (zFar + zNear) / (zFar - zNear);
+			out.mat[11] = - 1.0f;
+			out.mat[14] = - (2.0f * zFar * zNear) / (zFar - zNear);
 			return out;
 		}
 		Mat<4, 4, float> orthogonal(float left, float right, float bottom, float top){
@@ -235,13 +234,11 @@ namespace astro {
 			out.mat[13] = - (top + bottom) / (top - bottom);
 			return out;
 		}
-		Mat<4, 4, float> lookAt(const Vec3<float> &pos, const Vec3<float> &dir){
-			auto f = dir.normalize();
-			auto u = astro::Vec3<float>(0, 1, 0);
-			auto s = f.cross(u).normalize();
-			u = s.cross(f);
-
-			auto out = MAT4Identity;
+		Mat<4, 4, float> lookAt(const astro::Vec3<float> &pos, const astro::Vec3<float> &dir, const Vec3<float> &up){
+			astro::Vec3<float> const f((dir - pos).normalize());
+			astro::Vec3<float> const s(up.cross(f).normalize());
+			astro::Vec3<float> const u(f.cross(s));
+			astro::Mat<4, 4, float> out = MAT4Identity;
 			out.mat[0] = s.x;
 			out.mat[4] = s.y;
 			out.mat[8] = s.z;
@@ -253,11 +250,11 @@ namespace astro {
 			out.mat[2] = -f.x;
 			out.mat[6] = -f.y;
 			out.mat[10] = -f.z;
-
+			
 			out.mat[12] = -s.dot(pos);
 			out.mat[13] = -u.dot(pos);
 			out.mat[14] = f.dot(pos);
-			return out;			
+			return out;
 		}
 	}
 }
