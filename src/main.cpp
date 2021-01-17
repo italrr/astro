@@ -18,10 +18,10 @@ int main(int argc, const char *argv[]){
 	float c = 0;
 
 	// camera
-	auto cameraPos   = astro::Vec3<float>(0.0f, 0.0f,  3.0f);
+	auto cameraPos = astro::Vec3<float>(0.0f, 0.0f,  3.0f);
 	auto cameraFront = astro::Vec3<float>(0.0f, 0.0f, -1.0f);
-	auto cameraUp    = astro::Vec3<float>(0.0f, 1.0f,  0.0f);
-
+	auto cameraUp = astro::Vec3<float>(0.0f, 1.0f,  0.0f);
+	auto lightPos = astro::Vec3<float>(1.2f, 1.0f, 2.0f);
 
 	//
 	// Rendering thread
@@ -59,9 +59,18 @@ int main(int argc, const char *argv[]){
 			auto k = (cameraPos + cameraFront);
 			auto view = astro::Math::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
+
+
+
 			prim->transform->shAttrs["model"] = std::make_shared<astro::Gfx::ShaderAttrMat4>(astro::Gfx::ShaderAttrMat4(model, "model"));
 			prim->transform->shAttrs["view"] = std::make_shared<astro::Gfx::ShaderAttrMat4>(astro::Gfx::ShaderAttrMat4(view, "view"));
 			prim->transform->shAttrs["projection"] = std::make_shared<astro::Gfx::ShaderAttrMat4>(astro::Gfx::ShaderAttrMat4(projection, "projection"));
+
+			prim->transform->shAttrs["color"] = std::make_shared<astro::Gfx::ShaderAttrColor>(astro::Gfx::ShaderAttrColor(astro::Color(1.0f, 0.0f, 0.0f, 1.0f), "color"));
+			prim->transform->shAttrs["lightColor"] = std::make_shared<astro::Gfx::ShaderAttrColor>(astro::Gfx::ShaderAttrColor(astro::Color(1.0f, 0.0f, 1.0f), "lightColor"));
+			prim->transform->shAttrs["lightPos"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(lightPos, "lightPos"));
+			prim->transform->shAttrs["viewPos"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(cameraPos, "color"));
+			
 
 		}
 		astro::Gfx::update();
@@ -83,50 +92,51 @@ int main(int argc, const char *argv[]){
 	}
 
 	prim->init({
-        -0.5f, -0.5f, -0.5f, 
-         0.5f, -0.5f, -0.5f,  
-         0.5f,  0.5f, -0.5f,  
-         0.5f,  0.5f, -0.5f,  
-        -0.5f,  0.5f, -0.5f, 
-        -0.5f, -0.5f, -0.5f, 
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-        -0.5f, -0.5f,  0.5f, 
-         0.5f, -0.5f,  0.5f,  
-         0.5f,  0.5f,  0.5f,  
-         0.5f,  0.5f,  0.5f,  
-        -0.5f,  0.5f,  0.5f, 
-        -0.5f, -0.5f,  0.5f, 
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
 
-        -0.5f,  0.5f,  0.5f, 
-        -0.5f,  0.5f, -0.5f, 
-        -0.5f, -0.5f, -0.5f, 
-        -0.5f, -0.5f, -0.5f, 
-        -0.5f, -0.5f,  0.5f, 
-        -0.5f,  0.5f,  0.5f, 
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-         0.5f,  0.5f,  0.5f,  
-         0.5f,  0.5f, -0.5f,  
-         0.5f, -0.5f, -0.5f,  
-         0.5f, -0.5f, -0.5f,  
-         0.5f, -0.5f,  0.5f,  
-         0.5f,  0.5f,  0.5f,  
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-        -0.5f, -0.5f, -0.5f, 
-         0.5f, -0.5f, -0.5f,  
-         0.5f, -0.5f,  0.5f,  
-         0.5f, -0.5f,  0.5f,  
-        -0.5f, -0.5f,  0.5f, 
-        -0.5f, -0.5f, -0.5f, 
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-        -0.5f,  0.5f, -0.5f, 
-         0.5f,  0.5f, -0.5f,  
-         0.5f,  0.5f,  0.5f,  
-         0.5f,  0.5f,  0.5f,  
-        -0.5f,  0.5f,  0.5f, 
-        -0.5f,  0.5f, -0.5f, 
-	},{ }, true)->setOnSuccess([&, prim](const std::shared_ptr<astro::Result> &result){
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+	}, 36, 6, true)->setOnSuccess([&, prim](const std::shared_ptr<astro::Result> &result){
 		auto indexer = astro::Core::getIndexer();
 		auto fileShader = indexer->findByName("b_primitive_f.glsl");
+		auto fileTexShader = indexer->findByName("b_tex_primitive_f.glsl");
 		auto fileTexture = indexer->findByName("wall.jpg");
 		auto fileTexture2 = indexer->findByName("wall2.jpg");
 
@@ -134,6 +144,7 @@ int main(int argc, const char *argv[]){
 			auto rscmng = astro::Core::getResourceMngr();
             
 			auto resultSh = rscmng->load(fileShader, std::make_shared<astro::Gfx::Shader>(astro::Gfx::Shader()));
+			auto resultTexSh = rscmng->load(fileTexShader, std::make_shared<astro::Gfx::Shader>(astro::Gfx::Shader()));
 			auto resultTex = rscmng->load(fileTexture, std::make_shared<astro::Gfx::Texture>(astro::Gfx::Texture()));
 			auto resultTex2 = rscmng->load(fileTexture2, std::make_shared<astro::Gfx::Texture>(astro::Gfx::Texture()));
 
@@ -144,6 +155,14 @@ int main(int argc, const char *argv[]){
 			resultTex->setOnFailure([&, fileTexture](const std::shared_ptr<astro::Result> &result){
 				astro::log("failed to load texture '%s'\n", result->msg.c_str());
 			});
+
+			resultTexSh->setOnSuccess([&, fileTexShader](const std::shared_ptr<astro::Result> &result){
+				astro::log("loaded texture '%s'\n", fileTexShader->fname.c_str());
+				
+			});
+			resultTexSh->setOnFailure([&, fileTexShader](const std::shared_ptr<astro::Result> &result){
+				astro::log("failed to load texture '%s'\n", result->msg.c_str());
+			});			
 
 
             resultSh->setOnSuccess([&, fileShader](const std::shared_ptr<astro::Result> &result){
@@ -162,25 +181,25 @@ int main(int argc, const char *argv[]){
             });
 
 
-			astro::expect({resultSh, resultTex, resultTex2}, [&, rscmng, prim](astro::Job &ctx){
+			astro::expect({resultSh, resultTex, resultTex2, resultTexSh}, [&, rscmng, prim](astro::Job &ctx){
 
 				if(!ctx.succDeps){
 					astro::log("not all jobs were successful\n");
 					return;
 				}
 
-				auto rsc = rscmng->findByName("b_primitive_f.glsl");
+				auto sh = rscmng->findByName("b_primitive_f.glsl");
+				auto shTex = rscmng->findByName("b_tex_primitive_f.glsl");
 				auto tex = rscmng->findByName("wall.jpg");
-				auto tex2 = rscmng->findByName("wall2.jpg");
+				// auto tex2 = rscmng->findByName("wall2.jpg");
 
 
-				auto shader = std::static_pointer_cast<astro::Gfx::Shader>(rsc);
+				auto shader = std::static_pointer_cast<astro::Gfx::Shader>(sh);
+				// auto shader = std::static_pointer_cast<astro::Gfx::Shader>(shTex);
 				auto texture = std::static_pointer_cast<astro::Gfx::Texture>(tex);
-				auto texture2 = std::static_pointer_cast<astro::Gfx::Texture>(tex2);
 
 				prim->transform->shader = shader;
 				prim->transform->texture = texture;
-				prim->transform->texture2 = texture2;
 				
 				setRenderIt();
 

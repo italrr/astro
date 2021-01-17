@@ -103,13 +103,11 @@
 			struct RObj2DPrimitive : RenderObject {
 				std::vector<float> vertices;
 				std::vector<int> indices;
-				std::shared_ptr<astro::Result> init(
-														const std::vector<float> &verts,
-														const std::vector<int> &indices,
-				                                        bool incTex = false);
+				std::shared_ptr<astro::Result> init(const std::vector<float> &verts, unsigned int nverts, unsigned int strides, bool textured);
 				unsigned int vbo;
 				unsigned int vao;
-				unsigned int ebo;
+				unsigned int nverts;
+				unsigned int strides;
 				void render();
 			};
 
@@ -132,13 +130,15 @@
 				virtual std::shared_ptr<astro::Result> deleteShader(int id){ return astro::makeResult(ResultType::Success); }
 				virtual void readjustViewport(const astro::Vec2<int> &origin, const astro::Vec2<int> &size) { return; }
 				virtual std::shared_ptr<astro::Gfx::RenderLayer> addRenderLayer(astro::Gfx::RenderLayerType type, const std::string &tag, int order = -1);
-				// generation
+				// generators
 				virtual std::shared_ptr<astro::Result> generatePrimVertexBuffer(
 														const std::vector<float> &verts,
-														const std::vector<int> &indices,
-														bool incTex = false){ return astro::makeResult(ResultType::Success); }
+														unsigned int nverts,
+														unsigned int strides,
+														bool textured){ return astro::makeResult(ResultType::Success); }
 				virtual std::shared_ptr<astro::Result> generateTexture2D(unsigned char *data, int w, int h){ return astro::makeResult(ResultType::Success); }
-				
+				virtual std::shared_ptr<astro::Result> generateLightSource(){ return astro::makeResult(ResultType::Success); }
+                
 				// renders
 				virtual bool renderPrimVertBuffer(astro::Gfx::RenderObject *obj){ return true; }
 			};

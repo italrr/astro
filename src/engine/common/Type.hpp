@@ -51,6 +51,23 @@
                 this->y = c;
             }
 
+
+			astro::Vec2<T> operator*(const astro::Vec2<T> &vec) const{
+				return astro::Vec2<T>(this->x * vec.x, this->y * vec.y);
+			}
+
+			astro::Vec2<T> operator/(const astro::Vec2<T> &vec) const{
+				return astro::Vec2<T>(this->x / vec.x, this->y / vec.y);
+			}
+
+			astro::Vec2<T> operator+(const astro::Vec2<T> &vec) const{
+				return astro::Vec2<T>(this->x + vec.x, this->y + vec.y);
+			}
+
+			astro::Vec2<T> operator-(const astro::Vec2<T> &vec) const{
+				return astro::Vec2<T>(this->x - vec.x, this->y - vec.y);
+			}			
+
 			astro::Vec2<T> normalize() const{
 				astro::Vec2<T> normalized = *this;
 				T sqr = normalized.x * normalized.x + normalized.y * normalized.y;
@@ -189,19 +206,19 @@
             }
 
 			astro::Vec4<T> operator*(const astro::Vec4<T> &vec) const{
-				return astro::Vec4<T>(this->x * vec.x, this->y * vec.y, this->z * vec.z, this->w * vec.z);
+				return astro::Vec4<T>(this->x * vec.x, this->y * vec.y, this->z * vec.z, this->w * vec.w);
 			}
 
 			astro::Vec4<T> operator/(const astro::Vec4<T> &vec) const{
-				return astro::Vec4<T>(this->x / vec.x, this->y / vec.y, this->z / vec.z, this->w / vec.z);
+				return astro::Vec4<T>(this->x / vec.x, this->y / vec.y, this->z / vec.z, this->w / vec.w);
 			}
 
 			astro::Vec4<T> operator+(const astro::Vec4<T> &vec) const{
-				return astro::Vec4<T>(this->x + vec.x, this->y + vec.y, this->z + vec.z, this->w + vec.z);
+				return astro::Vec4<T>(this->x + vec.x, this->y + vec.y, this->z + vec.z, this->w + vec.w);
 			}
 
 			astro::Vec4<T> operator-(const astro::Vec4<T> &vec) const{
-				return astro::Vec4<T>(this->x - vec.x, this->y - vec.y, this->z - vec.z, this->w - vec.z);
+				return astro::Vec4<T>(this->x - vec.x, this->y - vec.y, this->z - vec.z, this->w - vec.w);
 			}									
 
 			astro::Vec4<T> normalize() const{

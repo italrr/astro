@@ -201,27 +201,25 @@ bool astro::Gfx::isRunning(){
     return ctx.running;
 }
 
-std::shared_ptr<astro::Result> astro::Gfx::RObj2DPrimitive::init(
-                                                            const std::vector<float> &verts,
-                                                            const std::vector<int> &indices,
-			                                                bool incTex){
+std::shared_ptr<astro::Result> astro::Gfx::RObj2DPrimitive::init(const std::vector<float> &verts, unsigned int nverts, unsigned int strides, bool textured){
     auto result = astro::makeResult(astro::ResultType::Waiting);
     this->vertices = verts;
     this->indices = indices;
-    result->job = astro::spawn([&, result, incTex](astro::Job &jctx){
+    this->nverts = nverts;
+    this->strides = strides;
+    result->job = astro::spawn([&, result, textured](astro::Job &jctx){
         auto jgfx = astro::findJob({"astro_gfx"});
         if(jgfx.get() == NULL){
             result->setFailure(astro::String::format("gfx job not found: failed to generate primitive"));
             return;
         }
-        jgfx->addBacklog([&, result, incTex](astro::Job &jctx){
+        jgfx->addBacklog([&, result, textured](astro::Job &jctx){
             auto ren = astro::Gfx::getRenderEngine();
-            auto r =  ctx.render->generatePrimVertexBuffer(this->vertices, this->indices, incTex);
+            auto r =  ctx.render->generatePrimVertexBuffer(this->vertices, this->nverts, this->strides, textured);
             if(r->val == ResultType::Success){
                 r->payload->reset();
                 r->payload->read(&vbo, sizeof(vbo));
                 r->payload->read(&vao, sizeof(vao));
-                r->payload->read(&ebo, sizeof(ebo));
             }
             result->set(r->val, r->msg);
         });

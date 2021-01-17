@@ -45,51 +45,44 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::isSupported(){
     return astro::makeResult(ResultType::Success);
 }
 
+std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateLightSource(){
+    return astro::makeResult(ResultType::Success);
+}
+
 std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generatePrimVertexBuffer(
                                                         const std::vector<float> &verts,
-                                                        const std::vector<int> &indices,
-                                                        bool incTex){
+    													unsigned int nverts,
+														unsigned int strides,                                                        
+                                                        bool textured){
     auto result = astro::makeResult(ResultType::Success);
     float vert[verts.size()];
     for(int i = 0; i < verts.size(); ++i){
         vert[i] = verts[i];
     }
-    int ind[indices.size()];
-    for(int i = 0; i < indices.size(); ++i){
-        ind[i] = indices[i];
-    }              
-    // gen buffers
+
     unsigned int vbo;
     unsigned int vao;
-    unsigned int ebo;
+
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);  
-    // glGenBuffers(1, &ebo);
-    
+
     glBindVertexArray(vao);
-    
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW); // TODO: 'GL_STATIC_DRAW': allow to specify other types?
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW);
     
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ind), ind, GL_STATIC_DRAW);
-
-    // int ncomp = incTex ? 8 : 3;
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, strides * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // if(incTex){
-    //     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, ncomp * sizeof(float), (void*)(3 * sizeof(float)));
-    //     glEnableVertexAttribArray(1);
-    //     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, ncomp * sizeof(float), (void*)(6 * sizeof(float)));
-    //     glEnableVertexAttribArray(2);
-    // }
+    if(textured){
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, strides * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+    }else{
+        // normal attribute
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, strides * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);        
+    }
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-    glBindVertexArray(0);
-    // copy ids to payload
     result->payload->write(&vbo, sizeof(unsigned int));
     result->payload->write(&vao, sizeof(unsigned int));
-    result->payload->write(&ebo, sizeof(unsigned int));
 
     return result;
 }
@@ -128,8 +121,8 @@ bool astro::Gfx::RenderEngineOpenGL::renderPrimVertBuffer(astro::Gfx::RenderObje
                     } break;                 
                     case ShaderAttrType::COLOR: {
                         auto attrc = std::static_pointer_cast<astro::Gfx::ShaderAttrColor>(it.second);
-                        float v[4] = {attrc->color.r, attrc->color.g, attrc->color.b, attrc->color.a};
-                        glUniform4fv(glGetUniformLocation(prim->transform->shader->shaderId, it.first.c_str()), 1, v);
+                        float v[4] = {attrc->color.r, attrc->color.g, attrc->color.b};
+                        glUniform3fv(glGetUniformLocation(prim->transform->shader->shaderId, it.first.c_str()), 1, v);
                     } break;
                     case ShaderAttrType::VEC2: {
                         auto attrvec = std::static_pointer_cast<astro::Gfx::ShaderAttrVec2>(it.second);
@@ -163,8 +156,7 @@ bool astro::Gfx::RenderEngineOpenGL::renderPrimVertBuffer(astro::Gfx::RenderObje
         glBindTexture(GL_TEXTURE_2D, prim->transform->texture2->textureId);
     }    
     glBindVertexArray(prim->vao);
-    // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDrawArrays(GL_TRIANGLES, 0, prim->nverts);
     glBindVertexArray(0);
     return true;
 }

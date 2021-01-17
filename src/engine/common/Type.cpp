@@ -1,6 +1,5 @@
 #include "Tools.hpp"
 #include "Type.hpp"
-#include "3rdparty/glm/glm.hpp"
 
 /*
 ================
@@ -12,7 +11,6 @@ astro::Color::Color(){
 	g	= 0;
 	b	= 0;
 	a	= 1.0f;
-	//  glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
 
 }
 

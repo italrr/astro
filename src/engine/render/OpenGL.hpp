@@ -23,9 +23,12 @@
                 // generators
                 std::shared_ptr<astro::Result> generatePrimVertexBuffer(
                                                         const std::vector<float> &verts,
-                                                        const std::vector<int> &indices,
-                                                        bool incTex);             
+                                                        unsigned int nverts,
+														unsigned int strides,
+                                                        bool textured);             
                 std::shared_ptr<astro::Result> generateTexture2D(unsigned char *data, int w, int h);
+                std::shared_ptr<astro::Result> generateLightSource();
+
                 // renders
                 bool renderPrimVertBuffer(astro::Gfx::RenderObject *obj);
 
