@@ -233,3 +233,105 @@ std::shared_ptr<astro::Result> astro::Gfx::RObj2DPrimitive::init(const std::vect
 void astro::Gfx::RObj2DPrimitive::render(){
     ctx.render->renderPrimVertBuffer(this);
 }
+
+
+astro::Gfx::Pipeline::Pipeline(const Pipeline &pip){
+    astro::log("Gfx::Pipeline cannot be copied\n");
+}
+
+astro::Gfx::Pipeline::Pipeline(){
+
+}
+
+
+void astro::Gfx::Camera::init(astro::Gfx::RenderEngine *renderer){
+    this->renderer = renderer;
+}
+
+void astro::Gfx::Camera::setPosition(const astro::Vec3<float> &position){
+    auto diff =  this->position - position;
+    this->position = position;
+    this->view = astro::Math::lookAt(this->position, at + diff, up);
+}
+
+void astro::Gfx::Camera::setCameraUp(const astro::Vec3<float> &cameraUp){
+    this->up = cameraUp;
+}
+
+void astro::Gfx::Camera::lookAt(const astro::Vec3<float> &at){
+    this->at = at;
+    this->view = astro::Math::lookAt(position, this->at, up);
+}
+
+void astro::Gfx::Pipeline::init(astro::Gfx::RenderEngine *renderer, float fov, float nearp, float farp){
+    std::unique_lock<std::mutex> lk(accesMutex);    
+    this->renderer = renderer;
+    this->camera.init(this->renderer);
+    this->projection = astro::Math::perspective(fov, (float)this->renderer->size.x / (float)this->renderer->size.y, nearp, farp);
+    lk.unlock();
+}
+
+void astro::Gfx::Pipeline::add(const std::shared_ptr<astro::Gfx::RenderObject> &obj){
+    std::unique_lock<std::mutex> lk(accesMutex);
+    this->objects[obj->id] = obj;
+    lk.unlock();
+}   
+
+void astro::Gfx::Pipeline::clear(){
+    std::unique_lock<std::mutex> lk(accesMutex);
+    objects.clear();
+    lk.unlock();
+}
+
+void astro::Gfx::Pipeline::remove(int id){
+    std::unique_lock<std::mutex> lk(accesMutex);
+    auto it = objects.find(id);
+    if(it == objects.end()){
+        lk.unlock();
+        return;
+    }
+    objects.erase(id);
+    lk.unlock();
+}
+
+void astro::Gfx::Pipeline::remove(const std::shared_ptr<astro::Gfx::RenderObject> &obj){
+    remove(obj->id);
+}
+
+void astro::Gfx::Pipeline::render(){
+    std::unique_lock<std::mutex> lk(accesMutex);
+    for(auto &it : objects){
+        auto &obj = it.second;
+            
+        // model, view, projection
+        obj->transform->shAttrs["model"] = std::make_shared<astro::Gfx::ShaderAttrMat4>(astro::Gfx::ShaderAttrMat4(obj->transform->model, "model"));
+        obj->transform->shAttrs["view"] = std::make_shared<astro::Gfx::ShaderAttrMat4>(astro::Gfx::ShaderAttrMat4(camera.view, "view"));
+        obj->transform->shAttrs["projection"] = std::make_shared<astro::Gfx::ShaderAttrMat4>(astro::Gfx::ShaderAttrMat4(projection, "projection"));
+
+        // light
+        for(int i = 0; i < lights.size(); ++i){
+            switch(lights[i]->type){
+                case LightType::POINT: {
+                    auto light =  std::static_pointer_cast<astro::Gfx::PointLight>(lights[i]);
+                    obj->transform->shAttrs["light.ambient"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->ambient, "light.ambient"));
+                    obj->transform->shAttrs["light.diffuse"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->diffuse, "light.diffuse"));
+                    obj->transform->shAttrs["light.specular"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->specular, "light.specular"));
+                    obj->transform->shAttrs["light.position"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->position, "light.position"));                    
+                } break;
+            }
+        }
+
+        // viewpos
+        obj->transform->shAttrs["viewPos"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(camera.position, "viewPos"));
+
+        // material			
+        obj->transform->shAttrs["material.diffuse"] = std::make_shared<astro::Gfx::ShaderAttrInt>(astro::Gfx::ShaderAttrInt(obj->transform->material.diffuse, "material.diffuse"));
+        obj->transform->shAttrs["material.specular"] = std::make_shared<astro::Gfx::ShaderAttrInt>(astro::Gfx::ShaderAttrInt(obj->transform->material.specular, "material.specular"));
+        obj->transform->shAttrs["material.shininess"] = std::make_shared<astro::Gfx::ShaderAttrFloat>(astro::Gfx::ShaderAttrFloat(obj->transform->material.shininess, "material.shininess"));
+        
+        // push it to render it
+        renderer->objects.push_back(obj);
+    }
+    lk.unlock();
+
+}

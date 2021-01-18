@@ -14,6 +14,24 @@
 	namespace astro {
 		namespace Gfx {
 
+			namespace ImageFormat {
+				enum ImageFormat : int {
+					RED,
+					GREEN,
+					BLUE,
+					RGB,
+					RGBA
+				};
+			}
+
+			namespace LightType {
+				enum ImageFormat : int {
+					SPOT,
+					POINT,
+					DIRECTIONAL
+				};
+			}			
+
 			namespace RenderEngineType {
 				enum RenderEngineType : int {
 					Undefined = -1,
@@ -75,13 +93,32 @@
 				}
 			}
 
+			struct Material {
+				int diffuse;
+				int specular;
+				float shininess;
+				Material(){
+
+				}
+				Material(int diffuse, int specular, float shininess){
+					this->diffuse = diffuse;
+					this->specular = specular;
+					this->shininess = shininess;
+				}
+			};
+
 			struct RenderTransform {
+				astro::Gfx::Material material;
+				astro::Mat<4, 4, float> model;
 				astro::Vec3<float> position;
 				astro::Color color;
 				std::shared_ptr<astro::Gfx::Shader> shader;
 				std::shared_ptr<astro::Gfx::Texture> texture;
 				std::shared_ptr<astro::Gfx::Texture> texture2;
 				std::unordered_map<std::string, std::shared_ptr<astro::Gfx::ShaderAttr>> shAttrs;
+				RenderTransform(){
+					this->model = astro::MAT4Identity;
+				}
 			};
 
 			struct RenderObject {
@@ -98,6 +135,52 @@
 				virtual void unload(){
 					return;
 				}
+			};
+
+			struct Light {
+				int type;
+				virtual void apply(const std::shared_ptr<RenderObject> &object){ return; }
+			};
+
+			struct PointLight : Light {
+				astro::Vec3<float> position;
+				float constant;
+				float linear;
+				float quadratic;
+				astro::Vec3<float> ambient;
+				astro::Vec3<float> diffuse;
+				astro::Vec3<float> specular;
+				PointLight(){
+					this->type = LightType::POINT;
+				}
+				void setPosition(const astro::Vec3<float> &position){
+					this->position = position;
+				}
+			};			
+
+			struct DirLight : Light {
+				astro::Vec3<float> direction;
+				astro::Vec3<float> ambient;
+				astro::Vec3<float> diffuse;
+				astro::Vec3<float> specular;
+				DirLight(){
+					this->type = LightType::DIRECTIONAL;
+				}				
+			};
+
+			struct SpotLight : Light {
+				astro::Vec3<float> position;
+				astro::Vec3<float> direction;
+				float cutOff;
+				float constant;
+				float linear;
+				float quadratic;
+				astro::Vec3<float> ambient;
+				astro::Vec3<float> diffuse;
+				astro::Vec3<float> specular;
+				SpotLight(){
+					this->type = LightType::SPOT;
+				}				
 			};
 
 			struct RObj2DPrimitive : RenderObject {
@@ -136,7 +219,7 @@
 														unsigned int nverts,
 														unsigned int strides,
 														bool textured){ return astro::makeResult(ResultType::Success); }
-				virtual std::shared_ptr<astro::Result> generateTexture2D(unsigned char *data, int w, int h){ return astro::makeResult(ResultType::Success); }
+				virtual std::shared_ptr<astro::Result> generateTexture2D(unsigned char *data, int w, int h, int format){ return astro::makeResult(ResultType::Success); }
 				virtual std::shared_ptr<astro::Result> generateLightSource(){ return astro::makeResult(ResultType::Success); }
                 
 				// renders
@@ -144,13 +227,35 @@
 			};
 			
 			struct Camera {
-				astro::Gfx::RenderEngine *render;
+				astro::Gfx::RenderEngine *renderer;
 				astro::Vec3<float> position;
-				astro::Vec3<float> direction;
+				astro::Vec3<float> front;
+				astro::Vec3<float> at;
+				astro::Vec3<float> up;
+				astro::Mat<4, 4, float> view;
 				void init(astro::Gfx::RenderEngine *render);
 				void setPosition(const astro::Vec3<float> &position);
+				void setCameraUp(const astro::Vec3<float> &cameraUp);
 				void lookAt(const astro::Vec3<float> &position);
 			};			
+
+			struct Pipeline {
+				astro::Mat<4, 4, float> projection;
+				Pipeline(const Pipeline &pip);
+				Pipeline();
+				std::mutex accesMutex;
+				astro::Gfx::RenderEngine *renderer;
+				astro::Gfx::Camera camera;
+				std::vector<std::shared_ptr<astro::Gfx::Light>> lights;
+				std::unordered_map<int, std::shared_ptr<astro::Gfx::RenderObject>> objects;
+				void init(astro::Gfx::RenderEngine *renderer, float fov, float nearp, float farp);
+				void add(const std::shared_ptr<astro::Gfx::RenderObject> &obj);
+				void clear();
+				void remove(int id);
+				void remove(const std::shared_ptr<astro::Gfx::RenderObject> &obj);
+				void render();
+			};
+
 			struct RenderInitSettings {
 				RenderInitSettings(){
 					size = astro::Vec2<int>(0);

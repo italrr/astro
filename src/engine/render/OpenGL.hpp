@@ -26,7 +26,7 @@
                                                         unsigned int nverts,
 														unsigned int strides,
                                                         bool textured);             
-                std::shared_ptr<astro::Result> generateTexture2D(unsigned char *data, int w, int h);
+                std::shared_ptr<astro::Result> generateTexture2D(unsigned char *data, int w, int h, int format);
                 std::shared_ptr<astro::Result> generateLightSource();
 
                 // renders

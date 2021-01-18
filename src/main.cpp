@@ -9,70 +9,68 @@ int main(int argc, const char *argv[]){
 	bool started = false;
 
 	auto prim = std::make_shared<astro::Gfx::RObj2DPrimitive>(astro::Gfx::RObj2DPrimitive());
-	bool renderIt = false;
 
-	auto setRenderIt = [&](){
-		renderIt = true;
-	};
 	auto stt = astro::ticks();
 	float c = 0;
 
-	// camera
-	auto cameraPos = astro::Vec3<float>(0.0f, 0.0f,  3.0f);
-	auto cameraFront = astro::Vec3<float>(0.0f, 0.0f, -1.0f);
-	auto cameraUp = astro::Vec3<float>(0.0f, 1.0f,  0.0f);
-	auto lightPos = astro::Vec3<float>(1.2f, 1.0f, 2.0f);
+
+	auto pipeline = astro::Gfx::Pipeline();
+	auto light = std::make_shared<astro::Gfx::PointLight>(astro::Gfx::PointLight());
+	light->setPosition(astro::Vec3<float>(1.2f, 1.0f, 2.0f));
+	light->ambient = astro::Vec3<float>(0.2f, 0.2f, 0.2f);
+	light->diffuse = astro::Vec3<float>(0.5f, 0.5f, 0.5f);
+	light->specular = astro::Vec3<float>(1.0f, 1.0f, 1.0f);
+	pipeline.lights.push_back(light);
+
+	pipeline.camera.setPosition(astro::Vec3<float>(0.0f, 0.0f,  10.0f));
+	pipeline.camera.setCameraUp(astro::Vec3<float>(0.0f, 1.0f,  0.0f));
+	pipeline.camera.lookAt(astro::Vec3<float>(0.0f, 0.0f, 0.0f));
+	
+	prim->transform->material.diffuse = 0;
+	prim->transform->material.specular = 1;
+	prim->transform->material.shininess = 64.0f;
 
 	//
 	// Rendering thread
 	//
 	auto gfxthrd = astro::spawn([&](astro::Job &ctx){ // loop
-		if(renderIt){
-			auto gfx = astro::Gfx::getRenderEngine();
-			gfx->objects.push_back(prim);
-				
-			astro::Mat<4, 4, float> model = astro::MAT4Identity;
-			astro::Mat<4, 4, float> projection;
-
-			projection = astro::Math::perspective(astro::Math::rads(45.0f), (float)gfx->size.x / (float)gfx->size.y, 0.1f, 100.0f);
-
-			uint64 delta = astro::ticks()-stt;
-
-			c += 0.15f;
-
-			model = model.rotate(astro::Math::rads(c), astro::Vec3<float>(1.0f, 0.3f, 0.5f));
-			model = model.translate(astro::Vec3<float>(0.0f, 0.0f, 0.0f));
-
-
-			float cameraSpeed = 0.2f; 
-			if (astro::Input::keyboardCheck(astro::Input::Key::W))
-				cameraPos = cameraPos + cameraFront * cameraSpeed;
-			if (astro::Input::keyboardCheck(astro::Input::Key::S))
-				cameraPos = cameraPos - cameraFront * cameraSpeed;
-
-			if (astro::Input::keyboardCheck(astro::Input::Key::A))
-				cameraPos = cameraPos - cameraFront.cross(cameraUp).normalize() * cameraSpeed;
-
-			if (astro::Input::keyboardCheck(astro::Input::Key::D))
-				cameraPos = cameraPos + cameraFront.cross(cameraUp).normalize() * cameraSpeed;
-
-			auto k = (cameraPos + cameraFront);
-			auto view = astro::Math::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-
-
-
-
-			prim->transform->shAttrs["model"] = std::make_shared<astro::Gfx::ShaderAttrMat4>(astro::Gfx::ShaderAttrMat4(model, "model"));
-			prim->transform->shAttrs["view"] = std::make_shared<astro::Gfx::ShaderAttrMat4>(astro::Gfx::ShaderAttrMat4(view, "view"));
-			prim->transform->shAttrs["projection"] = std::make_shared<astro::Gfx::ShaderAttrMat4>(astro::Gfx::ShaderAttrMat4(projection, "projection"));
-
-			prim->transform->shAttrs["color"] = std::make_shared<astro::Gfx::ShaderAttrColor>(astro::Gfx::ShaderAttrColor(astro::Color(1.0f, 0.0f, 0.0f, 1.0f), "color"));
-			prim->transform->shAttrs["lightColor"] = std::make_shared<astro::Gfx::ShaderAttrColor>(astro::Gfx::ShaderAttrColor(astro::Color(1.0f, 0.0f, 1.0f), "lightColor"));
-			prim->transform->shAttrs["lightPos"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(lightPos, "lightPos"));
-			prim->transform->shAttrs["viewPos"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(cameraPos, "color"));
+		// auto gfx = astro::Gfx::getRenderEngine();
+		// gfx->objects.push_back(prim);
 			
+		// astro::Mat<4, 4, float> model = astro::MAT4Identity;
+		// auto projection = astro::Math::perspective(astro::Math::rads(45.0f), (float)gfx->size.x / (float)gfx->size.y, 0.1f, 100.0f);
 
-		}
+
+		uint64 delta = astro::ticks()-stt;
+
+		c += 0.15f;
+		
+
+
+		prim->transform->model = astro::MAT4Identity.rotate(astro::Math::rads(c), astro::Vec3<float>(1.0f, 1.0f, 1.0f));
+		// model = model.translate(astro::Vec3<float>(0.0f, 0.0f, 0.0f));
+
+
+		float cameraSpeed = 0.2f; 
+		if (astro::Input::keyboardCheck(astro::Input::Key::W))
+			pipeline.camera.setPosition(pipeline.camera.position - astro::Vec3<float>(0.0f, 0.0f, 1.0f) * cameraSpeed);
+		if (astro::Input::keyboardCheck(astro::Input::Key::S))
+			pipeline.camera.setPosition(pipeline.camera.position + astro::Vec3<float>(0.0f, 0.0f, 1.0f) * cameraSpeed);
+
+		if (astro::Input::keyboardCheck(astro::Input::Key::A))
+			pipeline.camera.setPosition(pipeline.camera.position - astro::Vec3<float>(1.0f, 0.0f, 0.0f) * cameraSpeed);
+		if (astro::Input::keyboardCheck(astro::Input::Key::D))
+			pipeline.camera.setPosition(pipeline.camera.position + astro::Vec3<float>(1.0f, 0.0f, 0.0f) * cameraSpeed);			
+
+		// if (astro::Input::keyboardCheck(astro::Input::Key::A))
+		// 	pipeline.camera.position = pipeline.camera.position - pipeline.camera.front.cross(pipeline.camera.up).normalize() * cameraSpeed;
+
+		// if (astro::Input::keyboardCheck(astro::Input::Key::D))
+		// 	pipeline.camera.position = pipeline.camera.position + pipeline.camera.front.cross(pipeline.camera.up).normalize() * cameraSpeed;
+		
+		// pipeline.camera.lookAt(astro::Vec3<float>(0.0f, 0.0f,  -15.0f));
+
+		pipeline.render();
 		astro::Gfx::update();
 		if(!astro::Gfx::isRunning()){
 			ctx.stop();
@@ -80,6 +78,7 @@ int main(int argc, const char *argv[]){
 	}, astro::JobSpec(true, true, true, {"astro_gfx"}));
 	gfxthrd->setOnStart([&](astro::Job &ctx){ // init
 		astro::Gfx::init("astro", astro::Gfx::RenderEngineType::OpenGL);
+		pipeline.init(astro::Gfx::getRenderEngine(), astro::Math::rads(45.0f), 0.1f, 100.0f);
 		started = true;		
 	});
 	gfxthrd->setOnEnd([&](astro::Job &ctx){ // end
@@ -90,55 +89,55 @@ int main(int argc, const char *argv[]){
 		astro::Core::update();
 		astro::sleep(100); 
 	}
-
 	prim->init({
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        // positions          // normals           // texture coords
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
-	}, 36, 6, true)->setOnSuccess([&, prim](const std::shared_ptr<astro::Result> &result){
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
+	}, 36, 8, true)->setOnSuccess([&, prim](const std::shared_ptr<astro::Result> &result){
 		auto indexer = astro::Core::getIndexer();
 		auto fileShader = indexer->findByName("b_primitive_f.glsl");
 		auto fileTexShader = indexer->findByName("b_tex_primitive_f.glsl");
-		auto fileTexture = indexer->findByName("wall.jpg");
-		auto fileTexture2 = indexer->findByName("wall2.jpg");
+		auto fileTexture = indexer->findByName("container2.png");
+		auto fileTexture2 = indexer->findByName("container2_specular.png");
 
         if(fileShader.get() != NULL && fileTexture.get() != NULL && fileTexture2.get() != NULL){
 			auto rscmng = astro::Core::getResourceMngr();
@@ -157,11 +156,11 @@ int main(int argc, const char *argv[]){
 			});
 
 			resultTexSh->setOnSuccess([&, fileTexShader](const std::shared_ptr<astro::Result> &result){
-				astro::log("loaded texture '%s'\n", fileTexShader->fname.c_str());
+				astro::log("loaded shader '%s'\n", fileTexShader->fname.c_str());
 				
 			});
 			resultTexSh->setOnFailure([&, fileTexShader](const std::shared_ptr<astro::Result> &result){
-				astro::log("failed to load texture '%s'\n", result->msg.c_str());
+				astro::log("failed to load shader '%s'\n", result->msg.c_str());
 			});			
 
 
@@ -190,18 +189,20 @@ int main(int argc, const char *argv[]){
 
 				auto sh = rscmng->findByName("b_primitive_f.glsl");
 				auto shTex = rscmng->findByName("b_tex_primitive_f.glsl");
-				auto tex = rscmng->findByName("wall.jpg");
-				// auto tex2 = rscmng->findByName("wall2.jpg");
+				auto tex = rscmng->findByName("container2.png");
+				auto tex2 = rscmng->findByName("container2_specular.png");
 
 
 				auto shader = std::static_pointer_cast<astro::Gfx::Shader>(sh);
 				// auto shader = std::static_pointer_cast<astro::Gfx::Shader>(shTex);
 				auto texture = std::static_pointer_cast<astro::Gfx::Texture>(tex);
+				auto texture2 = std::static_pointer_cast<astro::Gfx::Texture>(tex2);
 
 				prim->transform->shader = shader;
 				prim->transform->texture = texture;
+				prim->transform->texture2 = texture2;
 				
-				setRenderIt();
+				pipeline.add(prim);
 
 			}, false);
 

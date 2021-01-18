@@ -66,20 +66,17 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generatePrimVerte
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);  
 
-    glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW);
     
+    glBindVertexArray(vao);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, strides * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    if(textured){
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, strides * sizeof(float), (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-    }else{
-        // normal attribute
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, strides * sizeof(float), (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);        
-    }
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, strides * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, strides * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
 
     result->payload->write(&vbo, sizeof(unsigned int));
     result->payload->write(&vao, sizeof(unsigned int));
@@ -87,7 +84,7 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generatePrimVerte
     return result;
 }
 
-std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateTexture2D(unsigned char *data, int w, int h){
+std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateTexture2D(unsigned char *data, int w, int h, int format){
     auto result = astro::makeResult(ResultType::Success);
     unsigned int texture;
     glGenTextures(1, &texture);  
@@ -96,7 +93,19 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateTexture2D
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    GLenum glformat;
+    switch(format){
+        case ImageFormat::RED: {
+            glformat = GL_RED;
+        } break;
+        case ImageFormat::RGB: {
+            glformat = GL_RGB;
+        } break;
+        case ImageFormat::RGBA: {
+            glformat = GL_RGBA;
+        } break;                
+    }
+    glTexImage2D(GL_TEXTURE_2D, 0, glformat, w, h, 0, glformat, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     result->payload->write(&texture, sizeof(texture));
     return result;
