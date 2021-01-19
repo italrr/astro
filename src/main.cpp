@@ -15,16 +15,40 @@ int main(int argc, const char *argv[]){
 
 
 	auto pipeline = astro::Gfx::Pipeline();
+
 	auto light = std::make_shared<astro::Gfx::PointLight>(astro::Gfx::PointLight());
 	light->setPosition(astro::Vec3<float>(1.2f, 1.0f, 2.0f));
 	light->ambient = astro::Vec3<float>(0.2f, 0.2f, 0.2f);
 	light->diffuse = astro::Vec3<float>(0.5f, 0.5f, 0.5f);
 	light->specular = astro::Vec3<float>(1.0f, 1.0f, 1.0f);
+	light->constant = 1.0f;
+	light->linear = 0.09f;
+	light->quadratic = 0.032f;
 	pipeline.lights.push_back(light);
 
-	pipeline.camera.setPosition(astro::Vec3<float>(0.0f, 0.0f,  10.0f));
-	pipeline.camera.setCameraUp(astro::Vec3<float>(0.0f, 1.0f,  0.0f));
-	pipeline.camera.lookAt(astro::Vec3<float>(0.0f, 0.0f, 0.0f));
+
+
+	auto lightspot = std::make_shared<astro::Gfx::SpotLight>(astro::Gfx::SpotLight());
+	lightspot->ambient = astro::Vec3<float>(0.0f, 0.0f, 0.0f);
+	lightspot->diffuse = astro::Vec3<float>(1.0f, 1.0f, 1.0f);
+	lightspot->specular = astro::Vec3<float>(1.0f, 1.0f, 1.0f);
+	lightspot->constant = 1.0f;
+	lightspot->linear = 0.09f;
+	lightspot->quadratic = 0.032f;
+	lightspot->cutOff = astro::Math::cos(astro::Math::rads(12.5f));
+	lightspot->outerCutOff = astro::Math::cos(astro::Math::rads(15.0f));
+	// pipeline.lights.push_back(lightspot);
+
+
+	auto lightdir = std::make_shared<astro::Gfx::DirLight>(astro::Gfx::DirLight());
+	lightdir->direction = astro::Vec3<float>(-0.2f, -1.0f, -0.3f);
+	lightdir->ambient = astro::Vec3<float>(0.05f, 0.05f, 0.05f);
+	lightdir->diffuse = astro::Vec3<float>(0.4f, 0.4f, 0.4f);
+	lightdir->specular = astro::Vec3<float>(0.5f, 0.5f, 0.5f);
+	// pipeline.lights.push_back(lightdir);
+
+
+	pipeline.camera.setPosition(astro::Vec3<float>(0.0f, 0.0f, 3.0f));
 	
 	prim->transform->material.diffuse = 0;
 	prim->transform->material.specular = 1;
@@ -58,9 +82,9 @@ int main(int argc, const char *argv[]){
 			pipeline.camera.setPosition(pipeline.camera.position + astro::Vec3<float>(0.0f, 0.0f, 1.0f) * cameraSpeed);
 
 		if (astro::Input::keyboardCheck(astro::Input::Key::A))
-			pipeline.camera.setPosition(pipeline.camera.position - astro::Vec3<float>(1.0f, 0.0f, 0.0f) * cameraSpeed);
+			pipeline.camera.setPosition(pipeline.camera.position + astro::Vec3<float>(1.0f, 0.0f, 0.0f) * cameraSpeed);
 		if (astro::Input::keyboardCheck(astro::Input::Key::D))
-			pipeline.camera.setPosition(pipeline.camera.position + astro::Vec3<float>(1.0f, 0.0f, 0.0f) * cameraSpeed);			
+			pipeline.camera.setPosition(pipeline.camera.position - astro::Vec3<float>(1.0f, 0.0f, 0.0f) * cameraSpeed);			
 
 		// if (astro::Input::keyboardCheck(astro::Input::Key::A))
 		// 	pipeline.camera.position = pipeline.camera.position - pipeline.camera.front.cross(pipeline.camera.up).normalize() * cameraSpeed;

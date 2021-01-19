@@ -159,6 +159,7 @@
 			};			
 
 			struct DirLight : Light {
+
 				astro::Vec3<float> direction;
 				astro::Vec3<float> ambient;
 				astro::Vec3<float> diffuse;
@@ -172,6 +173,7 @@
 				astro::Vec3<float> position;
 				astro::Vec3<float> direction;
 				float cutOff;
+				float outerCutOff;
 				float constant;
 				float linear;
 				float quadratic;
@@ -230,13 +232,17 @@
 				astro::Gfx::RenderEngine *renderer;
 				astro::Vec3<float> position;
 				astro::Vec3<float> front;
-				astro::Vec3<float> at;
 				astro::Vec3<float> up;
-				astro::Mat<4, 4, float> view;
+				astro::Vec3<float> right;
+				astro::Vec3<float> worldUp;
+				float yaw;
+				float pitch;
+				void setPosition(const astro::Vec3<float> &pos);
+				void setFront(const astro::Vec3<float> &front);
+				void update();
+				void setUp(const astro::Vec3<float> &up);
 				void init(astro::Gfx::RenderEngine *render);
-				void setPosition(const astro::Vec3<float> &position);
-				void setCameraUp(const astro::Vec3<float> &cameraUp);
-				void lookAt(const astro::Vec3<float> &position);
+				astro::Mat<4, 4, float> getView();
 			};			
 
 			struct Pipeline {

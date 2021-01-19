@@ -246,21 +246,40 @@ astro::Gfx::Pipeline::Pipeline(){
 
 void astro::Gfx::Camera::init(astro::Gfx::RenderEngine *renderer){
     this->renderer = renderer;
+    this->yaw = -90.0f;
+    this->pitch = 0.0f;
+    this->up = astro::Vec3<float>(0.0f, 1.0f, 0.0f);
+    this->worldUp = this->up;
+    this->position = astro::Vec3<float>(0.0f, 0.0f, 0.0f);
+    this->front = astro::Vec3<float>(0.0f, 0.0f, -1.0f);
+    update();
 }
 
-void astro::Gfx::Camera::setPosition(const astro::Vec3<float> &position){
-    auto diff =  this->position - position;
-    this->position = position;
-    this->view = astro::Math::lookAt(this->position, at + diff, up);
+void astro::Gfx::Camera::setPosition(const astro::Vec3<float> &pos){
+    this->position = pos;
 }
 
-void astro::Gfx::Camera::setCameraUp(const astro::Vec3<float> &cameraUp){
-    this->up = cameraUp;
+void astro::Gfx::Camera::setFront(const astro::Vec3<float> &front){
+    this->front = front;
+    this->update();
 }
 
-void astro::Gfx::Camera::lookAt(const astro::Vec3<float> &at){
-    this->at = at;
-    this->view = astro::Math::lookAt(position, this->at, up);
+void astro::Gfx::Camera::update(){
+    front.x = Math::cos(Math::rads(yaw)) * Math::cos(Math::rads(pitch));
+    front.y = Math::sin(Math::rads(pitch));
+    front.z = Math::sin(Math::rads(yaw)) * Math::cos(Math::rads(pitch));
+    front = front.normalize();
+    right = front.cross(this->worldUp).normalize();  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+    up = right.cross(front).normalize();
+}
+
+void astro::Gfx::Camera::setUp(const astro::Vec3<float> &up){
+    this->worldUp = up;
+    this->update();
+}
+
+astro::Mat<4, 4, float> astro::Gfx::Camera::getView(){
+    return Math::lookAt(position, position + front, up);
 }
 
 void astro::Gfx::Pipeline::init(astro::Gfx::RenderEngine *renderer, float fov, float nearp, float farp){
@@ -305,21 +324,60 @@ void astro::Gfx::Pipeline::render(){
             
         // model, view, projection
         obj->transform->shAttrs["model"] = std::make_shared<astro::Gfx::ShaderAttrMat4>(astro::Gfx::ShaderAttrMat4(obj->transform->model, "model"));
-        obj->transform->shAttrs["view"] = std::make_shared<astro::Gfx::ShaderAttrMat4>(astro::Gfx::ShaderAttrMat4(camera.view, "view"));
+        obj->transform->shAttrs["view"] = std::make_shared<astro::Gfx::ShaderAttrMat4>(astro::Gfx::ShaderAttrMat4(camera.getView(), "view"));
         obj->transform->shAttrs["projection"] = std::make_shared<astro::Gfx::ShaderAttrMat4>(astro::Gfx::ShaderAttrMat4(projection, "projection"));
 
         // light
+        int plightn = 0;
+        int slightn = 0;
+        int dirlightn = 0;
         for(int i = 0; i < lights.size(); ++i){
             switch(lights[i]->type){
+                case LightType::DIRECTIONAL: {
+                    auto light = std::static_pointer_cast<astro::Gfx::DirLight>(lights[i]);
+                    std::string index = astro::String::format("dirLights[%i].", dirlightn);
+                    obj->transform->shAttrs[index+"direction"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->direction));                    
+                    obj->transform->shAttrs[index+"ambient"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->ambient));
+                    obj->transform->shAttrs[index+"diffuse"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->diffuse));
+                    obj->transform->shAttrs[index+"specular"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->specular));
+                    ++dirlightn;
+                } break;
+                case LightType::SPOT: {
+                    auto light =  std::static_pointer_cast<astro::Gfx::SpotLight>(lights[i]);
+                    std::string index = astro::String::format("spotLights[%i].", slightn);
+                    obj->transform->shAttrs[index+"position"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(camera.position));                    
+                    obj->transform->shAttrs[index+"direction"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(camera.front));   
+
+                    obj->transform->shAttrs[index+"ambient"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->ambient));
+                    obj->transform->shAttrs[index+"diffuse"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->diffuse));
+                    obj->transform->shAttrs[index+"specular"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->specular));
+
+                    obj->transform->shAttrs[index+"constant"] = std::make_shared<astro::Gfx::ShaderAttrFloat>(astro::Gfx::ShaderAttrFloat(light->constant));
+                    obj->transform->shAttrs[index+"linear"] = std::make_shared<astro::Gfx::ShaderAttrFloat>(astro::Gfx::ShaderAttrFloat(light->linear));
+                    obj->transform->shAttrs[index+"quadratic"] = std::make_shared<astro::Gfx::ShaderAttrFloat>(astro::Gfx::ShaderAttrFloat(light->quadratic));
+                    obj->transform->shAttrs[index+"cutOff"] = std::make_shared<astro::Gfx::ShaderAttrFloat>(astro::Gfx::ShaderAttrFloat(light->cutOff));
+                    obj->transform->shAttrs[index+"outerCutOff"] = std::make_shared<astro::Gfx::ShaderAttrFloat>(astro::Gfx::ShaderAttrFloat(light->outerCutOff));
+                    ++slightn;
+                } break;                
                 case LightType::POINT: {
                     auto light =  std::static_pointer_cast<astro::Gfx::PointLight>(lights[i]);
-                    obj->transform->shAttrs["light.ambient"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->ambient, "light.ambient"));
-                    obj->transform->shAttrs["light.diffuse"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->diffuse, "light.diffuse"));
-                    obj->transform->shAttrs["light.specular"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->specular, "light.specular"));
-                    obj->transform->shAttrs["light.position"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->position, "light.position"));                    
+                    std::string index = astro::String::format("pointLights[%i].", plightn);
+                    obj->transform->shAttrs[index+"position"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->position));                    
+                    obj->transform->shAttrs[index+"ambient"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->ambient));
+                    obj->transform->shAttrs[index+"diffuse"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->diffuse));
+                    obj->transform->shAttrs[index+"specular"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(light->specular));
+
+                    obj->transform->shAttrs[index+"constant"] = std::make_shared<astro::Gfx::ShaderAttrFloat>(astro::Gfx::ShaderAttrFloat(light->constant));
+                    obj->transform->shAttrs[index+"linear"] = std::make_shared<astro::Gfx::ShaderAttrFloat>(astro::Gfx::ShaderAttrFloat(light->linear));
+                    obj->transform->shAttrs[index+"quadratic"] = std::make_shared<astro::Gfx::ShaderAttrFloat>(astro::Gfx::ShaderAttrFloat(light->quadratic));
+                    ++plightn;
                 } break;
             }
         }
+
+        obj->transform->shAttrs["n_point_lights"] = std::make_shared<astro::Gfx::ShaderAttrInt>(astro::Gfx::ShaderAttrInt(plightn));
+        obj->transform->shAttrs["n_spot_lights"] = std::make_shared<astro::Gfx::ShaderAttrInt>(astro::Gfx::ShaderAttrInt(slightn));
+        obj->transform->shAttrs["n_dir_lights"] = std::make_shared<astro::Gfx::ShaderAttrInt>(astro::Gfx::ShaderAttrInt(dirlightn));
 
         // viewpos
         obj->transform->shAttrs["viewPos"] = std::make_shared<astro::Gfx::ShaderAttrVec3>(astro::Gfx::ShaderAttrVec3(camera.position, "viewPos"));
