@@ -27,33 +27,33 @@
 
             struct Resource {
                 std::mutex accesMutex;
-                bool loaded;
-                int type;
-                int id;
+                bool rscLoaded;
+                int rscType;
+                int rscId;
                 std::shared_ptr<astro::Indexing::Index> file;
                 Resource(){
-                    type = ResourceType::NONE;
-                    loaded = false;
+                    rscType = ResourceType::NONE;
+                    rscLoaded = false;
                 }
                 Resource(const Resource &rsc){
                     this->file = rsc.file;
-                    this->type = rsc.type;
-                    this->id = rsc.id;
-                    this->loaded = rsc.loaded;
+                    this->rscType = rsc.rscLoaded;
+                    this->rscId = rsc.rscId;
+                    this->rscLoaded = rsc.rscLoaded;
                 }
                 void setId(int id){
                     std::unique_lock<std::mutex> lk(accesMutex);
-                    this->id = id;
+                    this->rscId = id;
                     lk.unlock();
                 }
                 void setType(int type){
                     std::unique_lock<std::mutex> lk(accesMutex);
-                    this->type = type;
+                    this->rscLoaded = type;
                     lk.unlock();
                 }        
                 void setLoaded(bool v){
                     std::unique_lock<std::mutex> lk(accesMutex);
-                    this->loaded = v;
+                    this->rscLoaded = v;
                     lk.unlock();                    
                 }
                 void setFile(const std::shared_ptr<astro::Indexing::Index> &file){

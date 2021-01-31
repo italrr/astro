@@ -10,7 +10,7 @@
             struct Texture : astro::Resource::Resource {
                 int textureId;
                 Texture(){
-                    type = astro::Resource::ResourceType::TEXTURE;
+                    rscType = astro::Resource::ResourceType::TEXTURE;
                     textureId = 0;
                 }
                 std::shared_ptr<astro::Result> unload();

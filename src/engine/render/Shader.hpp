@@ -130,7 +130,7 @@
                 std::string fragSrc;
                 int shaderId;
                 Shader(){
-                    type = astro::Resource::ResourceType::SHADER;
+                    rscType = astro::Resource::ResourceType::SHADER;
                     shaderId = 0;
                 }
                 std::shared_ptr<astro::Result> unload();

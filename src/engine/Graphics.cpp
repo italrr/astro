@@ -240,7 +240,7 @@ astro::Gfx::Pipeline::Pipeline(const Pipeline &pip){
 }
 
 astro::Gfx::Pipeline::Pipeline(){
-
+    lastId = 0;
 }
 
 
@@ -292,7 +292,9 @@ void astro::Gfx::Pipeline::init(astro::Gfx::RenderEngine *renderer, float fov, f
 
 void astro::Gfx::Pipeline::add(const std::shared_ptr<astro::Gfx::RenderObject> &obj){
     std::unique_lock<std::mutex> lk(accesMutex);
-    this->objects[obj->id] = obj;
+    unsigned int nId = ++lastId;
+    obj->rObjId = nId;
+    this->objects[nId] = obj;
     lk.unlock();
 }   
 
@@ -314,7 +316,7 @@ void astro::Gfx::Pipeline::remove(int id){
 }
 
 void astro::Gfx::Pipeline::remove(const std::shared_ptr<astro::Gfx::RenderObject> &obj){
-    remove(obj->id);
+    remove(obj->rObjId);
 }
 
 void astro::Gfx::Pipeline::render(){
@@ -386,7 +388,32 @@ void astro::Gfx::Pipeline::render(){
         obj->transform->shAttrs["material.diffuse"] = std::make_shared<astro::Gfx::ShaderAttrInt>(astro::Gfx::ShaderAttrInt(obj->transform->material.diffuse, "material.diffuse"));
         obj->transform->shAttrs["material.specular"] = std::make_shared<astro::Gfx::ShaderAttrInt>(astro::Gfx::ShaderAttrInt(obj->transform->material.specular, "material.specular"));
         obj->transform->shAttrs["material.shininess"] = std::make_shared<astro::Gfx::ShaderAttrFloat>(astro::Gfx::ShaderAttrFloat(obj->transform->material.shininess, "material.shininess"));
+        int diff = 0;
+        int spec = 0;
+        int norm = 0;
+        int height = 0;
+        if(obj->transform->textures.size() > 0){
+            for(int i = 0; i < obj->transform->textures.size(); ++i){
+                auto &tex = obj->transform->textures[i];
+                switch(tex.role){
+                    case TextureRole::DIFFUSE: {
+                        obj->transform->shAttrs[String::format("material.texture_diffuse%i", ++diff)] = std::make_shared<astro::Gfx::ShaderAttrInt>(astro::Gfx::ShaderAttrInt(i));
+                    } break;
+                    case TextureRole::SPECULAR: {
+                        obj->transform->shAttrs[String::format("material.texture_specular%i", ++spec)] = std::make_shared<astro::Gfx::ShaderAttrInt>(astro::Gfx::ShaderAttrInt(i));
+                    } break;  
+                    case TextureRole::NORMAL: {
+                        obj->transform->shAttrs[String::format("material.texture_normal%i", ++spec)] = std::make_shared<astro::Gfx::ShaderAttrInt>(astro::Gfx::ShaderAttrInt(i));
+                    } break;
+                    case TextureRole::HEIGHT: {
+                        obj->transform->shAttrs[String::format("material.texture_height%i", ++height)] = std::make_shared<astro::Gfx::ShaderAttrInt>(astro::Gfx::ShaderAttrInt(i));
+                    } break;                    
+                }
+            }
+        }
         
+
+
         // push it to render it
         renderer->objects.push_back(obj);
     }

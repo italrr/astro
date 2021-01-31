@@ -2,6 +2,7 @@
     #define ASTRO_RESULT_HPP
 
     #include <memory>
+    #include <functional>
     #include "Type.hpp"
 
     namespace astro {

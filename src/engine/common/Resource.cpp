@@ -10,10 +10,10 @@ std::shared_ptr<astro::Result> astro::Resource::ResourceManager::load(const std:
     holder->setId(++lastId);
     holder->setLoaded(true);
     holder->setFile(file);
-    this->resources[holder->id] = holder;        
+    this->resources[holder->rscId] = holder;        
     lk.unlock();
     auto r = holder->load(file);
-    r->payload->write(&holder->id, sizeof(holder->id));
+    r->payload->write(&holder->rscId, sizeof(holder->rscId));
     return r;
 }
 

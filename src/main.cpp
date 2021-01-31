@@ -223,8 +223,8 @@ int main(int argc, const char *argv[]){
 				auto texture2 = std::static_pointer_cast<astro::Gfx::Texture>(tex2);
 
 				prim->transform->shader = shader;
-				prim->transform->texture = texture;
-				prim->transform->texture2 = texture2;
+				prim->transform->textures.push_back(astro::Gfx::BindTexture(texture, astro::Gfx::TextureRole::NONE));
+				prim->transform->textures.push_back(astro::Gfx::BindTexture(texture2, astro::Gfx::TextureRole::NONE));
 				
 				pipeline.add(prim);
 

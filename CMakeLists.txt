@@ -14,6 +14,7 @@ set (astro_src
     src/engine/render/Vulkan.cpp
     src/engine/render/Texture.cpp
     src/engine/render/Shader.cpp
+    src/engine/render/Model.cpp
     src/engine/Core.cpp
     src/engine/Input.cpp
     src/engine/common/3rdparty/Jzon.cpp
@@ -33,15 +34,16 @@ if(UNIX AND NOT APPLE)
 endif()
 
 IF(LINUX)
-	target_link_libraries(astro_bin -m64 -lglfw -pthread -ldl -lGLU -lGL -lrt -lXrandr -lXxf86vm -lXi -lXinerama -lX11 -lvulkan)
+	target_link_libraries(astro_bin -m64 -lGL -lGLU -lglfw -pthread -ldl  -lrt -lXrandr -lXi -lXinerama -lX11 -lXxf86vm -lvulkan -lassimp -lz)
 ENDIF(LINUX)
 
 IF(MINGW)
-	target_link_libraries(astro_bin -m64 -lglfw3 -pthread -lgdi32 -lopengl32 -lvulkan-1)
+	target_link_libraries(astro_bin -m64 -lglfw3 -pthread -lgdi32 -lopengl32 -lvulkan-1 -lassimp -lIrrXML -lzlib)
 ENDIF(MINGW)
 
+# Apple most likely won't work
 IF(APPLE)
-	target_link_libraries(astro_bin -lglfw3 -pthread -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo -lvulkan-1)
+	target_link_libraries(astro_bin -lglfw3 -pthread -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo -lvulkan-1 -lassimp -lIrrXML -lzlib)
 ENDIF(APPLE)
 
 add_executable(astro src/main.cpp)

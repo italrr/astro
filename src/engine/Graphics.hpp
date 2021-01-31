@@ -77,6 +77,7 @@
 				enum RenderObjectType : int {
 					MODEL,
 					PRIMITIVE,
+					MESH,
 					NONE
 				};
 				static std::string name(int type){
@@ -85,6 +86,8 @@
 							return "Model";
 						case RenderObjectType::PRIMITIVE:
 							return "Primitive";
+						case RenderObjectType::MESH:
+							return "Mesh";							
 						case RenderObjectType::NONE:
 							return "None";							
 						default:
@@ -92,6 +95,28 @@
 					}
 				}
 			}
+
+            namespace TextureRole {
+                enum TextureRole : int {
+                    DIFFUSE,
+                    SPECULAR,
+					NORMAL,
+					HEIGHT,
+                    NONE
+                };
+            }
+
+            struct BindTexture {
+                std::shared_ptr<astro::Gfx::Texture> texture;
+                int role;
+				BindTexture(const std::shared_ptr<astro::Gfx::Texture> &texture, int role){
+					this->texture = texture;
+					this->role = role;
+				}
+                BindTexture(){
+                    this->role = TextureRole::NONE;
+                }
+            };
 
 			struct Material {
 				int diffuse;
@@ -107,14 +132,21 @@
 				}
 			};
 
+            struct Vertex {
+                astro::Vec3<float> position;
+                astro::Vec3<float> normal;
+                astro::Vec2<float> texCoords;
+				astro::Vec3<float> tangent;
+				astro::Vec3<float> bitangent;
+            };			
+
 			struct RenderTransform {
 				astro::Gfx::Material material;
 				astro::Mat<4, 4, float> model;
 				astro::Vec3<float> position;
 				astro::Color color;
 				std::shared_ptr<astro::Gfx::Shader> shader;
-				std::shared_ptr<astro::Gfx::Texture> texture;
-				std::shared_ptr<astro::Gfx::Texture> texture2;
+				std::vector<astro::Gfx::BindTexture> textures;
 				std::unordered_map<std::string, std::shared_ptr<astro::Gfx::ShaderAttr>> shAttrs;
 				RenderTransform(){
 					this->model = astro::MAT4Identity;
@@ -123,16 +155,13 @@
 
 			struct RenderObject {
 				RenderObject(){
-					type = RenderObjectType::NONE;
+					rObjtype = RenderObjectType::NONE;
 					transform = std::make_shared<astro::Gfx::RenderTransform>(astro::Gfx::RenderTransform());
 				}
-				int id;
-				int type;
+				int rObjtype;
+				int rObjId;
 				std::shared_ptr<astro::Gfx::RenderTransform> transform;
 				virtual void render(){
-					return;
-				}
-				virtual void unload(){
 					return;
 				}
 			};
@@ -194,6 +223,9 @@
 				unsigned int nverts;
 				unsigned int strides;
 				void render();
+				RObj2DPrimitive(){
+					rObjtype = RenderObjectType::PRIMITIVE;
+				}
 			};
 
 			struct RenderEngine {
@@ -222,10 +254,11 @@
 														unsigned int strides,
 														bool textured){ return astro::makeResult(ResultType::Success); }
 				virtual std::shared_ptr<astro::Result> generateTexture2D(unsigned char *data, int w, int h, int format){ return astro::makeResult(ResultType::Success); }
-				virtual std::shared_ptr<astro::Result> generateLightSource(){ return astro::makeResult(ResultType::Success); }
-                
+				virtual std::shared_ptr<astro::Result> generateMesh(const std::vector<astro::Gfx::Vertex> &vertices, const std::vector<unsigned int> &indices){ return astro::makeResult(ResultType::Success); }
+
 				// renders
 				virtual bool renderPrimVertBuffer(astro::Gfx::RenderObject *obj){ return true; }
+				virtual bool renderMesh(astro::Gfx::RenderObject *obj){ return true; }
 			};
 			
 			struct Camera {
@@ -246,6 +279,7 @@
 			};			
 
 			struct Pipeline {
+				unsigned int lastId;
 				astro::Mat<4, 4, float> projection;
 				Pipeline(const Pipeline &pip);
 				Pipeline();

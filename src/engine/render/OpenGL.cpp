@@ -2,11 +2,13 @@
 #include <GLFW/glfw3.h>
 #include <string.h>
 #include <stdarg.h>
+#include <cstddef>
 
 #include "../common/Result.hpp"
 #include "../common/Log.hpp"
 
 #include "OpenGL.hpp"
+#include "Model.hpp"
 
 std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::init(){
     return astro::makeResult(ResultType::Success);
@@ -45,8 +47,45 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::isSupported(){
     return astro::makeResult(ResultType::Success);
 }
 
-std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateLightSource(){
-    return astro::makeResult(ResultType::Success);
+static void applyShader(const std::shared_ptr<astro::Gfx::RenderTransform> &transform){
+    glUseProgram(transform->shader->shaderId);
+    if(transform->shAttrs.size() > 0){
+        for(auto &it : transform->shAttrs){
+            switch(it.second->type){
+                case astro::Gfx::ShaderAttrType::FLOAT: {
+                    auto attrf = std::static_pointer_cast<astro::Gfx::ShaderAttrFloat>(it.second);
+                    glUniform1f(glGetUniformLocation(transform->shader->shaderId, it.first.c_str()), attrf->n);
+                } break;
+                case astro::Gfx::ShaderAttrType::INT: {
+                    auto attri = std::static_pointer_cast<astro::Gfx::ShaderAttrInt>(it.second);
+                    glUniform1i(glGetUniformLocation(transform->shader->shaderId, it.first.c_str()), attri->n);
+                } break;                 
+                case astro::Gfx::ShaderAttrType::COLOR: {
+                    auto attrc = std::static_pointer_cast<astro::Gfx::ShaderAttrColor>(it.second);
+                    float v[4] = {attrc->color.r, attrc->color.g, attrc->color.b};
+                    glUniform3fv(glGetUniformLocation(transform->shader->shaderId, it.first.c_str()), 1, v);
+                } break;
+                case astro::Gfx::ShaderAttrType::VEC2: {
+                    auto attrvec = std::static_pointer_cast<astro::Gfx::ShaderAttrVec2>(it.second);
+                    float v[2] = {attrvec->vec.x, attrvec->vec.y};
+                    glUniform2fv(glGetUniformLocation(transform->shader->shaderId, it.first.c_str()), 1, v);
+                } break;     
+                case astro::Gfx::ShaderAttrType::VEC3: {
+                    auto attrvec = std::static_pointer_cast<astro::Gfx::ShaderAttrVec3>(it.second);
+                    float v[3] = {attrvec->vec.x, attrvec->vec.y, attrvec->vec.z};
+                    glUniform3fv(glGetUniformLocation(transform->shader->shaderId, it.first.c_str()), 1, v);
+                } break; 
+                case astro::Gfx::ShaderAttrType::MAT4: {
+                    auto attrmat = std::static_pointer_cast<astro::Gfx::ShaderAttrMat4>(it.second);
+                    unsigned int loc = glGetUniformLocation(transform->shader->shaderId, it.first.c_str());
+                    glUniformMatrix4fv(loc, 1, GL_FALSE, attrmat->mat.mat);                        
+                } break;                                                           
+                default: {
+                    astro::log("[GFX] undefined shader type to apply '%s'\n", it.second->type);
+                } break;
+            }
+        }
+    }
 }
 
 std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generatePrimVertexBuffer(
@@ -84,6 +123,25 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generatePrimVerte
     return result;
 }
 
+bool astro::Gfx::RenderEngineOpenGL::renderPrimVertBuffer(astro::Gfx::RenderObject *obj){
+    auto prim = static_cast<RObj2DPrimitive*>(obj);
+    // bind shader
+    if(prim->transform->shader.get() != NULL){
+        applyShader(prim->transform);
+    }
+    // bind textures
+    for(int i = 0; i < prim->transform->textures.size(); ++i){
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, prim->transform->textures[i].texture->textureId);        
+    }
+    glActiveTexture(GL_TEXTURE0);
+    // render
+    glBindVertexArray(prim->vao);
+    glDrawArrays(GL_TRIANGLES, 0, prim->nverts);
+    glBindVertexArray(0);
+    return true;
+}
+
 std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateTexture2D(unsigned char *data, int w, int h, int format){
     auto result = astro::makeResult(ResultType::Success);
     unsigned int texture;
@@ -111,62 +169,60 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateTexture2D
     return result;
 }
 
-bool astro::Gfx::RenderEngineOpenGL::renderPrimVertBuffer(astro::Gfx::RenderObject *obj){
+std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateMesh(const std::vector<astro::Gfx::Vertex> &vertices, const std::vector<unsigned int> &indices){
+    auto result = astro::makeResult(ResultType::Success);
 
-    auto prim = static_cast<RObj2DPrimitive*>(obj);
-    // bind shader
-    if(prim->transform->shader.get() != NULL){
-        glUseProgram(prim->transform->shader->shaderId);
-        if(prim->transform->shAttrs.size() > 0){
-            for(auto &it : prim->transform->shAttrs){
-                switch(it.second->type){
-                    case ShaderAttrType::FLOAT: {
-                        auto attrf = std::static_pointer_cast<astro::Gfx::ShaderAttrFloat>(it.second);
-                        glUniform1f(glGetUniformLocation(prim->transform->shader->shaderId, it.first.c_str()), attrf->n);
-                    } break;
-                    case ShaderAttrType::INT: {
-                        auto attri = std::static_pointer_cast<astro::Gfx::ShaderAttrInt>(it.second);
-                        glUniform1i(glGetUniformLocation(prim->transform->shader->shaderId, it.first.c_str()), attri->n);
-                    } break;                 
-                    case ShaderAttrType::COLOR: {
-                        auto attrc = std::static_pointer_cast<astro::Gfx::ShaderAttrColor>(it.second);
-                        float v[4] = {attrc->color.r, attrc->color.g, attrc->color.b};
-                        glUniform3fv(glGetUniformLocation(prim->transform->shader->shaderId, it.first.c_str()), 1, v);
-                    } break;
-                    case ShaderAttrType::VEC2: {
-                        auto attrvec = std::static_pointer_cast<astro::Gfx::ShaderAttrVec2>(it.second);
-                        float v[2] = {attrvec->vec.x, attrvec->vec.y};
-                        glUniform2fv(glGetUniformLocation(prim->transform->shader->shaderId, it.first.c_str()), 1, v);
-                    } break;     
-                    case ShaderAttrType::VEC3: {
-                        auto attrvec = std::static_pointer_cast<astro::Gfx::ShaderAttrVec3>(it.second);
-                        float v[3] = {attrvec->vec.x, attrvec->vec.y, attrvec->vec.z};
-                        glUniform3fv(glGetUniformLocation(prim->transform->shader->shaderId, it.first.c_str()), 1, v);
-                    } break; 
-                    case ShaderAttrType::MAT4: {
-                        auto attrmat = std::static_pointer_cast<astro::Gfx::ShaderAttrMat4>(it.second);
-                        unsigned int loc = glGetUniformLocation(prim->transform->shader->shaderId, it.first.c_str());
-                        glUniformMatrix4fv(loc, 1, GL_FALSE, attrmat->mat.mat);                        
-                    } break;                                                           
-                    default: {
-                        astro::log("[GFX] undefined shader type to apply '%s'\n", it.second->type);
-                    } break;
-                }
-            }
-        }
-    }
-    // bind texture
-    if(prim->transform->texture.get() != NULL){
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, prim->transform->texture->textureId);
-    }
-    if(prim->transform->texture2.get() != NULL){
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, prim->transform->texture2->textureId);
-    }    
-    glBindVertexArray(prim->vao);
-    glDrawArrays(GL_TRIANGLES, 0, prim->nverts);
+    unsigned vao, vbo, ebo;
+
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
+  
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);  
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+
+    // positions
+    glEnableVertexAttribArray(0);	
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    // normals
+    glEnableVertexAttribArray(1);	
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(astro::Gfx::Vertex, normal));
+    // texture coords
+    glEnableVertexAttribArray(2);	
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(astro::Gfx::Vertex, texCoords));
+
     glBindVertexArray(0);
+
+    result->payload->write(&vao, sizeof(unsigned int));
+    result->payload->write(&vbo, sizeof(unsigned int));    
+    result->payload->write(&ebo, sizeof(unsigned int));    
+
+    return result;
+}
+
+bool astro::Gfx::RenderEngineOpenGL::renderMesh(astro::Gfx::RenderObject *obj){
+    auto mesh = static_cast<astro::Gfx::Mesh*>(obj);
+
+    // bind shader
+    applyShader(mesh->transform);
+
+    // bind textures
+    for(int i = 0; i < mesh->transform->textures.size(); ++i){
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, mesh->transform->textures[i].texture->textureId);        
+    }
+    glActiveTexture(GL_TEXTURE0);
+
+    // draw mesh
+    glBindVertexArray(mesh->vao);
+    glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
     return true;
 }
 
