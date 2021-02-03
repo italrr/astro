@@ -4,7 +4,7 @@ astro
 astro is a highly concurrent 3D game engine made in C++11. It's targeted to support Vulkan and OpenGL 4.5 out of the box. 
 
 ### Objectives & philosophies applied since day one:
-- Highly concurrent
+- High concurrency
 - Major preference for parallel pipelines
 - Open World esque world maps and scenes
 - Platform agnostic rendering engine out-of-the-box, aiming to support the following for release version:
@@ -13,8 +13,8 @@ astro is a highly concurrent 3D game engine made in C++11. It's targeted to supp
 - Multi-platform/OS support:
     - Linux
     - Windows
-- Ability to modify any aspect of it through scripts and JSON files
-- Native scripting language built-in (Yet to be disclosed which one)
+- Ability to modify any aspects of the engine through scripts and JSON files
+- Native scripting language built-in (Yet to be disclosed which one, but most likely Lua)
 
 
 ***As of right now this is an experimental and learning project. I will take my time to work on this, slowly adding new features.***
