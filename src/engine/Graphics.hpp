@@ -118,6 +118,15 @@
                 }
             };
 
+			namespace MaterialMode {
+				enum MaterialMode : int {
+					DIFFUSE = 1,
+					SPECULAR = 2,
+					NORMAL = 4,
+					HEIGHT = 8,
+				};
+			}
+
 			struct Material {
 				int diffuse;
 				int specular;
@@ -141,6 +150,7 @@
             };			
 
 			struct RenderTransform {
+				int matMode;
 				astro::Gfx::Material material;
 				astro::Mat<4, 4, float> model;
 				astro::Vec3<float> position;
@@ -149,7 +159,25 @@
 				std::vector<astro::Gfx::BindTexture> textures;
 				std::unordered_map<std::string, std::shared_ptr<astro::Gfx::ShaderAttr>> shAttrs;
 				RenderTransform(){
+					this->shader = std::make_shared<astro::Gfx::Shader>(astro::Gfx::Shader());
 					this->model = astro::MAT4Identity;
+					this->matMode = 0;
+					enMatMode(Gfx::MaterialMode::DIFFUSE);
+					enMatMode(Gfx::MaterialMode::SPECULAR);
+					enMatMode(Gfx::MaterialMode::NORMAL);
+					enMatMode(Gfx::MaterialMode::HEIGHT);
+				}
+				void enMatMode(int mode){
+					this->matMode = this->matMode | (1 << mode);
+				}
+				void disMatMode(int mode){
+					this->matMode = this->matMode & (~mode);
+				}
+				void resetMatMode(){
+					this->matMode = 0;
+				}
+				bool hasMatMode(int mode){
+					return this->matMode & (1 << mode); 
 				}
 			};
 

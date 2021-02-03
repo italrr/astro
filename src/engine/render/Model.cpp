@@ -9,15 +9,16 @@
 
 std::shared_ptr<astro::Result> astro::Gfx::Model::load(const std::shared_ptr<astro::Indexing::Index> &file){
     auto result = astro::makeResult(astro::ResultType::Waiting);
+     // only use diffuse for now
+    this->transform->resetMatMode();
+    this->transform->enMatMode(Gfx::MaterialMode::DIFFUSE);
     result->job = astro::spawn([&, file, result](astro::Job &ctx){   
-
-        
 
         Assimp::Importer import;
         const aiScene *scene = import.ReadFile(file->path.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs);	
 
         if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode){
-            result->setFailure(astro::String::format("Model::load: failed to load model '%s': %s", file->fname.c_str(), import.GetErrorString()));
+            result->setFailure(astro::String::format("Model::load: failed to load model '%s': %s\n", file->fname.c_str(), import.GetErrorString()));
             return;
         }
 
@@ -29,18 +30,19 @@ std::shared_ptr<astro::Result> astro::Gfx::Model::load(const std::shared_ptr<ast
         std::unordered_map<std::string, TextureDependency> dependencies;
 
         auto indexer = Core::getIndexer();
+        auto rscmngr = Core::getResourceMngr();
 
         auto processTexture = [&](aiMaterial *mat, aiTextureType type, int rtypeName){
-            for(unsigned int i = 0; i < mat->GetTextureCount(type); i++){
+            for(unsigned int i = 0; i < mat->GetTextureCount(type); ++i){
                 aiString str;
                 mat->GetTexture(type, i, &str);
                 TextureDependency dep;
                 dep.role = rtypeName;
                 dep.file = indexer->findByName(str.C_Str());
-                if(file.get() == NULL){
-                   astro::log("Model::load: failed to find texture '%s' for model '%s'", str.C_Str(), file->fname.c_str());
+                if(dep.file.get() == NULL){
+                   astro::log("Model::load: failed to find texture '%s' for model '%s'\n", str.C_Str(), file->fname.c_str());
                 }
-                dependencies[file->fname] = dep;
+                dependencies[dep.file->fname] = dep;
             }            
         };
 
@@ -62,9 +64,14 @@ std::shared_ptr<astro::Result> astro::Gfx::Model::load(const std::shared_ptr<ast
                     vertex.normal.z = mesh->mNormals[i].z;
                 }
                 // texture coordinates
-                if(mesh->mTextureCoords[0]){
+                if(mesh->HasTextureCoords(0)){
                     vertex.texCoords.x = mesh->mTextureCoords[0][i].x; 
                     vertex.texCoords.y = mesh->mTextureCoords[0][i].y;
+                }else{
+                    vertex.texCoords = astro::Vec2<float>(0.0f, 0.0f);
+                }
+                // tangent and bittangent
+                if(mesh->HasTangentsAndBitangents()){
                     // tangent
                     vertex.tangent.x = mesh->mTangents[i].x;
                     vertex.tangent.y = mesh->mTangents[i].y;
@@ -74,7 +81,9 @@ std::shared_ptr<astro::Result> astro::Gfx::Model::load(const std::shared_ptr<ast
                     vertex.bitangent.y = mesh->mBitangents[i].y;
                     vertex.bitangent.z = mesh->mBitangents[i].z;
                 }else{
-                    vertex.texCoords = astro::Vec2<float>(0.0f, 0.0f);
+                    // TODO: maybe generate it if not available?
+                    vertex.tangent.set(0);
+                    vertex.bitangent.set(0);
                 }
                 vertices.push_back(vertex);
             }
@@ -87,13 +96,10 @@ std::shared_ptr<astro::Result> astro::Gfx::Model::load(const std::shared_ptr<ast
             }
             // process material
             aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];  
-
             processTexture(material, aiTextureType_DIFFUSE, TextureRole::DIFFUSE);
             processTexture(material, aiTextureType_SPECULAR, TextureRole::SPECULAR);
             processTexture(material, aiTextureType_HEIGHT, TextureRole::NORMAL);
             processTexture(material, aiTextureType_AMBIENT, TextureRole::HEIGHT);
-
-
             rmesh->vertices = vertices;
             rmesh->indices = indices;
 
@@ -112,49 +118,62 @@ std::shared_ptr<astro::Result> astro::Gfx::Model::load(const std::shared_ptr<ast
             }            
         };
 
+
         processNode(scene->mRootNode, scene);
 
 
+        std::vector<std::shared_ptr<astro::Result>> results;
+        for(auto &it : dependencies){
+            results.push_back(rscmngr->load(it.second.file, std::make_shared<astro::Gfx::Texture>(astro::Gfx::Texture())));
+        }
+
+        // expect all textures to load
+        astro::expect(results, [&, dependencies, result,rscmngr](astro::Job &ctx){
+            if(!ctx.succDeps){
+                astro::log("Model::load: warning: not all textures were loaded succesfully\n");
+            }
+
+            for(auto &it : dependencies){
+                auto texture = rscmngr->findByName(it.second.file->fname);
+                this->transform->textures.push_back(BindTexture(std::dynamic_pointer_cast<astro::Gfx::Texture>(texture), it.second.role));
+            }
+
+            auto jgfx = astro::findJob({"astro_gfx"});
+            if(jgfx.get() == NULL){
+                result->setFailure(astro::String::format("gfx job not found: cannot load shader '%s'", file->fname.c_str()));
+                return;
+            }
+
+            // load meshes to gpu
+            jgfx->addBacklog([&, result](astro::Job &ctx){
+                auto ren = astro::Gfx::getRenderEngine();
+                for(int i = 0; i < meshes.size(); ++i){
+                    auto meshres = ren->generateMesh(meshes[i]->vertices, meshes[i]->indices);
+                    meshres->payload->reset();
+                    meshres->payload->read(&meshes[i]->vao, sizeof(meshes[i]->vao));
+                    meshres->payload->read(&meshes[i]->vbo, sizeof(meshes[i]->vbo));
+                    meshres->payload->read(&meshes[i]->ebo, sizeof(meshes[i]->ebo));
+                }
+                result->set(astro::ResultType::Success);
+            });
+        }, false);
 
 
 
-        // auto jgfx = astro::findJob({"astro_gfx"});
-        // if(jgfx.get() == NULL){
-        //     result->setFailure(astro::String::format("gfx job not found: cannot load shader '%s'", file->fname.c_str()));
-        //     return;
-        // }
-        
-        // jgfx->addBacklog([&, result, data, width, height, nrChannels](astro::Job &ctx){
-
-        //     int format;
-        //     if (nrChannels == 1)
-        //         format = ImageFormat::RED;
-        //     else if (nrChannels == 3)
-        //         format = ImageFormat::RGB;
-        //     else if (nrChannels == 4)
-        //         format = ImageFormat::RGBA;
-
-        //     auto ren = astro::Gfx::getRenderEngine();
-        //     auto r = ren->generateTexture2D(data, width, height, format);
-        //     result->set(r->val, r->msg);
-        //     if(r->val == ResultType::Success){
-        //         r->payload->reset();
-        //         r->payload->read(&textureId, sizeof(textureId));
-        //     }
-        //     stbi_image_free(data);
-        // });
     }, true, false, true);
 
     return result;
 }
 
 std::shared_ptr<astro::Result> astro::Gfx::Model::unload(){
+    // TODO: unload code
     return astro::makeResult(astro::ResultType::Success);
 }
 
 void astro::Gfx::Model::render(){
     auto ren = astro::Gfx::getRenderEngine();
     for(int i = 0; i < meshes.size(); ++i){
+        meshes[i]->transform = this->transform;
         ren->renderMesh(meshes[i].get());
     }
 }

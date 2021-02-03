@@ -172,7 +172,7 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateTexture2D
 std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateMesh(const std::vector<astro::Gfx::Vertex> &vertices, const std::vector<unsigned int> &indices){
     auto result = astro::makeResult(ResultType::Success);
 
-    unsigned vao, vbo, ebo;
+    unsigned int vao, vbo, ebo;
 
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
@@ -191,16 +191,23 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateMesh(cons
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     // normals
     glEnableVertexAttribArray(1);	
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(astro::Gfx::Vertex, normal));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
     // texture coords
     glEnableVertexAttribArray(2);	
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(astro::Gfx::Vertex, texCoords));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+    // tangent
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
+    // bitangent
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
+
 
     glBindVertexArray(0);
 
-    result->payload->write(&vao, sizeof(unsigned int));
-    result->payload->write(&vbo, sizeof(unsigned int));    
-    result->payload->write(&ebo, sizeof(unsigned int));    
+    result->payload->write(&vao, sizeof(vao));
+    result->payload->write(&vbo, sizeof(vbo));    
+    result->payload->write(&ebo, sizeof(ebo));    
 
     return result;
 }
@@ -213,6 +220,28 @@ bool astro::Gfx::RenderEngineOpenGL::renderMesh(astro::Gfx::RenderObject *obj){
 
     // bind textures
     for(int i = 0; i < mesh->transform->textures.size(); ++i){
+        switch(mesh->transform->textures[i].role){
+            case TextureRole::DIFFUSE: {
+                if(!mesh->transform->hasMatMode(MaterialMode::DIFFUSE)){
+                    continue;
+                }
+            } break;
+            case TextureRole::SPECULAR: {
+                if(!mesh->transform->hasMatMode(MaterialMode::SPECULAR)){
+                    continue;
+                }
+            } break;
+            case TextureRole::NORMAL: {
+                if(!mesh->transform->hasMatMode(MaterialMode::NORMAL)){
+                    continue;
+                }
+            } break;
+            case TextureRole::HEIGHT: {
+                if(!mesh->transform->hasMatMode(MaterialMode::HEIGHT)){
+                    continue;
+                }
+            } break;                                    
+        }
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, mesh->transform->textures[i].texture->textureId);        
     }

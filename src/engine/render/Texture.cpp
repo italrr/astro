@@ -8,6 +8,7 @@ std::shared_ptr<astro::Result> astro::Gfx::Texture::load(const std::shared_ptr<a
     auto result = astro::makeResult(astro::ResultType::Waiting);
     result->job = astro::spawn([&, file, result](astro::Job &ctx){        
         int width, height, nrChannels;
+        stbi_set_flip_vertically_on_load(true);
         unsigned char *data = stbi_load(file->path.c_str(), &width, &height, &nrChannels, 0); 
 
         if(!data){
@@ -46,6 +47,7 @@ std::shared_ptr<astro::Result> astro::Gfx::Texture::load(const std::shared_ptr<a
 }
 
 std::shared_ptr<astro::Result> astro::Gfx::Texture::unload(){
+    // TODO: finish unload code
     auto result = astro::makeResult(astro::ResultType::Waiting);
     if(!rscLoaded || textureId == 0){
         return astro::makeResult(astro::ResultType::noop);

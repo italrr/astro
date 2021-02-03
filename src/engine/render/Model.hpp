@@ -15,6 +15,9 @@
                 std::vector<unsigned int> indices;          
                 Mesh(){
                     rObjtype = RenderObjectType::MESH;
+                    vao = 0;
+                    vbo = 0;
+                    ebo = 0;
                 }
                 void render();
             };
