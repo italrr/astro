@@ -309,6 +309,32 @@
 				return out;
 			}
 
+			astro::Mat<4, 4, T> scale(const astro::Vec3<T> &vec) const{
+				Mat<4, 4, T> out;
+				
+				out.mat[0 + 4*0] = this->mat[0 + 4*0] * vec.x;
+				out.mat[0 + 4*1] = this->mat[0 + 4*1] * vec.x;
+				out.mat[0 + 4*2] = this->mat[0 + 4*2] * vec.x;
+				out.mat[0 + 4*3] = this->mat[0 + 4*3] * vec.x;
+
+				out.mat[1 + 4*0] = this->mat[1 + 4*0] * vec.y;
+				out.mat[1 + 4*1] = this->mat[1 + 4*1] * vec.y;
+				out.mat[1 + 4*2] = this->mat[1 + 4*2] * vec.y;
+				out.mat[1 + 4*3] = this->mat[1 + 4*3] * vec.y;
+
+				out.mat[2 + 4*0] = this->mat[2 + 4*0] * vec.z;
+				out.mat[2 + 4*1] = this->mat[2 + 4*1] * vec.z;
+				out.mat[2 + 4*2] = this->mat[2 + 4*2] * vec.z;
+				out.mat[2 + 4*3] = this->mat[2 + 4*3] * vec.z;				
+
+				out.mat[3 + 4*0] = this->mat[3 + 4*0];
+				out.mat[3 + 4*1] = this->mat[3 + 4*1];
+				out.mat[3 + 4*2] = this->mat[3 + 4*2];
+				out.mat[3 + 4*3] = this->mat[3 + 4*3];
+
+				return out;
+			}
+
 			astro::Mat<4, 4, T> rotate(T angle, const astro::Vec3<T> &vec) const{
 				T const a = angle;
 				T const c = Math::cos(a);

@@ -4,8 +4,9 @@
 #include "Job.hpp"
 
 std::shared_ptr<astro::Result> astro::Indexing::Indexer::scan(const std::string &root){
+    auto startTime = astro::ticks();
     auto result = astro::makeResult(astro::ResultType::Waiting);
-    result->job = astro::spawn([&, root, result](astro::Job &ctx){
+    result->job = astro::spawn([&, root, result, startTime](astro::Job &ctx){
         std::unique_lock<std::mutex> lk(accesMutex);
         int found = 0;
         int bytes = 0;
@@ -22,7 +23,7 @@ std::shared_ptr<astro::Result> astro::Indexing::Indexer::scan(const std::string 
             }
         }
         result->set(ResultType::Success);
-        astro::log("[IND] found %i files(s) | total %i byte(s)\n", found, bytes);
+        astro::log("[IND] found %i files(s) | total %s | elapsed %.2f secs\n", found, astro::String::formatByes(bytes).c_str(), (float)(astro::ticks()-startTime)/1000);
         lk.unlock();
     }, astro::JobSpec(true, false, true, {"indexing", root}));
     return result;

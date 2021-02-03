@@ -3,6 +3,10 @@
 #include "engine/Input.hpp"
 #include "engine/render/Model.hpp"
 
+// #include <glm/glm.hpp>
+// #include <glm/gtc/matrix_transform.hpp>
+// #include <glm/gtc/type_ptr.hpp>
+
 int main(int argc, const char *argv[]){
 	
 	astro::Core::init();
@@ -14,6 +18,8 @@ int main(int argc, const char *argv[]){
 
 	auto stt = astro::ticks();
 	float c = 0;
+
+	// glm::scale
 
 
 	auto pipeline = astro::Gfx::Pipeline();
@@ -64,7 +70,7 @@ int main(int argc, const char *argv[]){
 		c += 0.15f;
 
 
-		model->transform->model = astro::MAT4Identity.rotate(astro::Math::rads(c), astro::Vec3<float>(1.0f, 0.7f, 0.5f));
+		model->transform->model = astro::MAT4Identity.rotate(astro::Math::rads(c), astro::Vec3<float>(1.0f, 0.7f, 0.5f)).scale(astro::Vec3<float>(0.1f, 0.1f, 0.1f));
 		// model = model.translate(astro::Vec3<float>(0.0f, 0.0f, 0.0f));
 
 

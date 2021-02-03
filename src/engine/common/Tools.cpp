@@ -182,6 +182,31 @@ std::string astro::String::format(const std::string &_str, ...){
 	return std::string(buff);
 }
 
+std::string astro::String::formatByes(int n){
+	int round = 0;
+	float _n = n;
+	while(_n > 1024){
+		_n /= 1024;
+		++round;
+	}
+	std::string size = "B";
+	switch(round){
+		case 1: 
+			size = "KB";
+			break;
+		case 2: 
+			size = "MB";
+			break;
+		case 3:
+			size = "GB";
+			break;
+		case 4:
+			size = "TB";									
+			break;
+	}
+	return String::format("%.2f %s", _n, size.c_str());
+}
+
 /* 
 	MATH
 */
@@ -215,6 +240,7 @@ namespace astro {
 		float degs(float rads){
 			return rads * (180.0f/PI);	
 		}
+
 		Mat<4, 4, float> perspective(float fovy, float aspect, float zNear, float zFar){
 			float const tanHalfFovy = astro::Math::tan(fovy / 2.0f);
 			astro::Mat<4, 4, float> out(0.0f);
