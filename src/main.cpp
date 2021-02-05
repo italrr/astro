@@ -70,7 +70,7 @@ int main(int argc, const char *argv[]){
 		c += 0.15f;
 
 
-		model->transform->model = astro::MAT4Identity.rotate(astro::Math::rads(c), astro::Vec3<float>(1.0f, 0.7f, 0.5f)).scale(astro::Vec3<float>(0.1f, 0.1f, 0.1f));
+		model->transform->model = astro::MAT4Identity.rotate(astro::Math::rads(c), astro::Vec3<float>(1.0f, 0.7f, 0.5f)).scale(astro::Vec3<float>(0.05f, 0.05f, 0.05f));
 		// model = model.translate(astro::Vec3<float>(0.0f, 0.0f, 0.0f));
 
 
@@ -110,16 +110,16 @@ int main(int argc, const char *argv[]){
 	// wait for render thread to start
 	while(!started){
 		astro::Core::update();
-		astro::sleep(100); 
+		astro::sleep(1000); 
 	}
 
 	auto indexer = astro::Core::getIndexer();
-	auto fileShader = indexer->findByName("b_primitive_f.glsl");
-	auto modelFile = indexer->findByName("backpack.obj");
 
-	if(fileShader.get() != NULL && modelFile.get() != NULL){
+	indexer->asyncFindManyByName({"b_primitive_f.glsl", "natha.dae"}, [&](std::vector<std::shared_ptr<astro::Indexing::Index>> &files){
+		auto fileShader = files[0];
+		auto modelFile = files[1];
+
 		auto rscmng = astro::Core::getResourceMngr();
-		
 		auto resultSh = rscmng->load(fileShader, std::make_shared<astro::Gfx::Shader>(astro::Gfx::Shader()));
 		auto rmodel = rscmng->load(modelFile, model);
 
@@ -156,9 +156,7 @@ int main(int argc, const char *argv[]){
 			pipeline.add(model);
 
 		}, false);
-			
-
-	}
+	});
 
 
 	//

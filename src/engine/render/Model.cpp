@@ -15,7 +15,7 @@ std::shared_ptr<astro::Result> astro::Gfx::Model::load(const std::shared_ptr<ast
     result->job = astro::spawn([&, file, result](astro::Job &ctx){   
 
         Assimp::Importer import;
-        const aiScene *scene = import.ReadFile(file->path.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs);	
+        const aiScene *scene = import.ReadFile(file->path.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices | aiProcess_FlipUVs);	
 
         if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode){
             result->setFailure(astro::String::format("Model::load: failed to load model '%s': %s\n", file->fname.c_str(), import.GetErrorString()));
@@ -45,6 +45,8 @@ std::shared_ptr<astro::Result> astro::Gfx::Model::load(const std::shared_ptr<ast
                 dependencies[dep.file->fname] = dep;
             }            
         };
+
+        int WEIGHTS_PER_VERTEX = 4;
 
         auto processMesh = [&](aiMesh *mesh, const aiScene *scene){
             auto rmesh = std::make_shared<astro::Gfx::Mesh>(astro::Gfx::Mesh());
@@ -100,6 +102,16 @@ std::shared_ptr<astro::Result> astro::Gfx::Model::load(const std::shared_ptr<ast
             processTexture(material, aiTextureType_SPECULAR, TextureRole::SPECULAR);
             processTexture(material, aiTextureType_HEIGHT, TextureRole::NORMAL);
             processTexture(material, aiTextureType_AMBIENT, TextureRole::HEIGHT);
+            // process bones
+            int boneArraysSize = mesh->mNumVertices*WEIGHTS_PER_VERTEX;
+            std::vector<int> boneIDs;
+            boneIDs.resize(boneArraysSize);            
+            for(int i = 0; i < mesh->mNumBones; ++i){
+                aiBone* bone = mesh->mBones[i]; 
+                std::string bName(bone->mName.data);
+                
+            }
+
             rmesh->vertices = vertices;
             rmesh->indices = indices;
 
@@ -128,9 +140,13 @@ std::shared_ptr<astro::Result> astro::Gfx::Model::load(const std::shared_ptr<ast
         }
 
         // expect all textures to load
-        astro::expect(results, [&, dependencies, result,rscmngr](astro::Job &ctx){
+        astro::expect(results, [&, dependencies, result,rscmngr, results](astro::Job &ctx){
             if(!ctx.succDeps){
-                astro::log("Model::load: warning: not all textures were loaded succesfully\n");
+                std::string messages = "";
+                for(int i =0; i < ctx.listeners.size(); ++i){
+                    messages += astro::String::format("%s\n", results[i]->msg.c_str());
+                }
+                astro::log("Model::load: warning: not all textures were loaded succesfully: %s\n", messages.c_str());
             }
 
             for(auto &it : dependencies){

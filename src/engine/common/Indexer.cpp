@@ -7,7 +7,7 @@ std::shared_ptr<astro::Result> astro::Indexing::Indexer::scan(const std::string 
     auto startTime = astro::ticks();
     auto result = astro::makeResult(astro::ResultType::Waiting);
     result->job = astro::spawn([&, root, result, startTime](astro::Job &ctx){
-        std::unique_lock<std::mutex> lk(accesMutex);
+        std::vector<std::shared_ptr<Index>> toAdd;
         int found = 0;
         int bytes = 0;
         for(int i = 0; i < INDEX_STRUCTURE.size(); ++i){
@@ -17,14 +17,19 @@ std::shared_ptr<astro::Result> astro::Indexing::Indexer::scan(const std::string 
             for(int j = 0; j < files.size(); ++j){
                 auto res = std::make_shared<astro::Indexing::Index>(astro::Indexing::Index());
                 res->read(files[j]);
-                this->resources[res->hash] = res;
+                toAdd.push_back(res);
+                // this->resources[res->hash] = res;
                 bytes += res->size;
                 ++found;
             }
         }
+        std::unique_lock<std::mutex> lk(accesMutex);
+        for(int i = 0; i < toAdd.size(); ++i){
+            this->resources[toAdd[i]->hash] = toAdd[i];
+        }
+        lk.unlock();        
         result->set(ResultType::Success);
         astro::log("[IND] found %i files(s) | total %s | elapsed %.2f secs\n", found, astro::String::formatByes(bytes).c_str(), (float)(astro::ticks()-startTime)/1000);
-        lk.unlock();
     }, astro::JobSpec(true, false, true, {"indexing", root}));
     return result;
 }
@@ -54,12 +59,80 @@ std::shared_ptr<astro::Indexing::Index> astro::Indexing::Indexer::findByName(con
     return std::shared_ptr<astro::Indexing::Index>(NULL); 
 }
 
+std::shared_ptr<astro::Result> astro::Indexing::Indexer::asyncFindByHash(const std::string &hash, std::function<void(std::shared_ptr<Index> &file)> callback){
+    auto result = astro::makeResult(astro::ResultType::Waiting);
+    result->job = astro::spawn([&, hash, result, callback](astro::Job &ctx){    
+
+        auto find = this->findByHash(hash);
+        if(find.get() != NULL){
+            callback(find);
+            result->setSuccess();
+            ctx.stop();
+        }
+
+    }, true, true, false);
+    return result;
+}
+
+std::shared_ptr<astro::Result> astro::Indexing::Indexer::asyncFindByName(const std::string &name, std::function<void(std::shared_ptr<Index> &file)> callback){
+    auto result = astro::makeResult(astro::ResultType::Waiting);
+    result->job = astro::spawn([&, name, result, callback](astro::Job &ctx){    
+
+        auto find = this->findByName(name);
+        if(find.get() != NULL){
+            callback(find);
+            result->setSuccess();
+            ctx.stop();
+        }
+
+    }, true, true, false);
+    return result;
+}
+
+std::shared_ptr<astro::Result> astro::Indexing::Indexer::asyncFindManyByHash(const std::vector<std::string> &hashes, std::function<void(std::vector<std::shared_ptr<Index>> &files)> callback){
+    auto result = astro::makeResult(astro::ResultType::Waiting);
+    result->job = astro::spawn([&, hashes, result, callback](astro::Job &ctx){    
+        std::vector<std::shared_ptr<Index>> find;
+        for(int i = 0; i < hashes.size(); ++i){
+            auto c = this->findByHash(hashes[i]);
+            if(c.get() == NULL){
+                return;
+            }
+            find.push_back(c);
+        }
+        callback(find);
+        result->setSuccess();
+        ctx.stop();
+
+    }, true, true, false);
+    return result;
+}
+
+std::shared_ptr<astro::Result> astro::Indexing::Indexer::asyncFindManyByName(const std::vector<std::string> &names, std::function<void(std::vector<std::shared_ptr<Index>> &files)> callback){
+    auto result = astro::makeResult(astro::ResultType::Waiting);
+    result->job = astro::spawn([&, names, result, callback](astro::Job &ctx){    
+        std::vector<std::shared_ptr<Index>> find;
+        for(int i = 0; i < names.size(); ++i){
+            auto c = this->findByName(names[i]);
+            if(c.get() == NULL){
+                return;
+            }
+            find.push_back(c);
+        }
+        callback(find);
+        result->setSuccess();
+        ctx.stop();
+
+    }, true, true, false);
+    return result;
+}
+
 
 void astro::Indexing::Index::read(const std::string &path){
     this->path = path;
     this->size = File::size(path);
     this->fname = File::filename(path);
-    this->hash = Hash::md5(path);
+    this->hash = Hash::md5(path); // TODO: implement partial hashing
     this->autotag();   
 }
 

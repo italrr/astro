@@ -39,7 +39,7 @@ void astro::sleep(uint64 t){
 */
 namespace astro{
 	namespace Hash {
-        std::string md5(const std::string &path){
+        std::string md5(const std::string &path, bool partial){
 			if(!File::exists(path)){
 				return "";
 			}
@@ -56,7 +56,7 @@ namespace astro{
 			return hash;
 		}
 
-        std::string md5(char *data, size_t size){
+        std::string md5(char *data, size_t size, bool partial){
 			return ThirdPartyMD5::md5(data, size);
 		}		
 	}

@@ -34,6 +34,12 @@
                 std::shared_ptr<astro::Result> scan(const std::string &root);
                 std::shared_ptr<Index> findByHash(const std::string &hash);
                 std::shared_ptr<Index> findByName(const std::string &name);
+
+                std::shared_ptr<astro::Result> asyncFindByHash(const std::string &hash, std::function<void(std::shared_ptr<Index> &file)> callback);
+                std::shared_ptr<astro::Result> asyncFindByName(const std::string &name, std::function<void(std::shared_ptr<Index> &file)> callback); 
+
+                std::shared_ptr<astro::Result> asyncFindManyByHash(const std::vector<std::string> &hashes, std::function<void(std::vector<std::shared_ptr<Index>> &files)> callback);
+                std::shared_ptr<astro::Result> asyncFindManyByName(const std::vector<std::string> &names, std::function<void(std::vector<std::shared_ptr<Index>> &files)> callback);
             };
         }
 

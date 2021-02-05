@@ -14,8 +14,8 @@
         void sleep(uint64 t);
         // hash
         namespace Hash {
-            std::string md5(const std::string &path);
-            std::string md5(char *data, size_t size);
+            std::string md5(const std::string &path, bool partial = false);
+            std::string md5(char *data, size_t size, bool partial = false);
         }
         // file
         namespace File {

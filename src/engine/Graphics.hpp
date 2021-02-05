@@ -147,6 +147,9 @@
                 astro::Vec2<float> texCoords;
 				astro::Vec3<float> tangent;
 				astro::Vec3<float> bitangent;
+				// bone data
+				float weight[4];
+				unsigned int id[4];
             };			
 
 			struct RenderTransform {
