@@ -150,10 +150,25 @@
 				// bone data
 				float weight[4];
 				unsigned int id[4];
+				Vertex(){
+					for (unsigned int i = 0; i < 4; i++){ 
+						weight[i] = 0.0f;
+					}
+				}
+				void setBoneData(unsigned int bId, float weight){
+					for(unsigned int i = 0; i < 4; i++){ 
+						if(this->weight[i] == 0.0f){
+							this->id[i] = bId;
+							this->weight[i] = weight;
+							return;
+						}
+					}
+				}				
             };			
 
 			struct RenderTransform {
 				int matMode;
+				bool useBones;
 				astro::Gfx::Material material;
 				astro::Mat<4, 4, float> model;
 				astro::Vec3<float> position;
@@ -165,6 +180,7 @@
 					this->shader = std::make_shared<astro::Gfx::Shader>(astro::Gfx::Shader());
 					this->model = astro::MAT4Identity;
 					this->matMode = 0;
+					this->useBones = false;
 					enMatMode(Gfx::MaterialMode::DIFFUSE);
 					enMatMode(Gfx::MaterialMode::SPECULAR);
 					enMatMode(Gfx::MaterialMode::NORMAL);
@@ -285,8 +301,8 @@
 														unsigned int strides,
 														bool textured){ return astro::makeResult(ResultType::Success); }
 				virtual std::shared_ptr<astro::Result> generateTexture2D(unsigned char *data, int w, int h, int format){ return astro::makeResult(ResultType::Success); }
-				virtual std::shared_ptr<astro::Result> generateMesh(const std::vector<astro::Gfx::Vertex> &vertices, const std::vector<unsigned int> &indices){ return astro::makeResult(ResultType::Success); }
-
+				virtual std::shared_ptr<astro::Result> generateMesh(const std::vector<astro::Gfx::Vertex> &vertices, const std::vector<unsigned int> &indices, bool useBones){ return astro::makeResult(ResultType::Success); }
+	
 				// renders
 				virtual bool renderPrimVertBuffer(astro::Gfx::RenderObject *obj){ return true; }
 				virtual bool renderMesh(astro::Gfx::RenderObject *obj){ return true; }

@@ -29,7 +29,7 @@ std::shared_ptr<astro::Result> astro::Indexing::Indexer::scan(const std::string 
         }
         lk.unlock();        
         result->set(ResultType::Success);
-        astro::log("[IND] found %i files(s) | total %s | elapsed %.2f secs\n", found, astro::String::formatByes(bytes).c_str(), (float)(astro::ticks()-startTime)/1000);
+        astro::log("[IND] indexed %i files(s) | total %s | elapsed %.2f secs\n", found, astro::String::formatByes(bytes).c_str(), (float)(astro::ticks()-startTime)/1000);
     }, astro::JobSpec(true, false, true, {"indexing", root}));
     return result;
 }

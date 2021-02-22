@@ -10,6 +10,7 @@
 #include "Core.hpp"
 #include "render/Vulkan.hpp"
 #include "render/OpenGL.hpp"
+#include "render/Model.hpp"
 
 // since input comes from the window itself
 void __ASTRO_init_input(GLFWwindow *window);
@@ -321,6 +322,7 @@ void astro::Gfx::Pipeline::remove(const std::shared_ptr<astro::Gfx::RenderObject
 
 void astro::Gfx::Pipeline::render(){
     std::unique_lock<std::mutex> lk(accesMutex);
+    // TODO: refactor this mess
     for(auto &it : objects){
         auto &obj = it.second;
             
@@ -396,6 +398,7 @@ void astro::Gfx::Pipeline::render(){
         int height = 0;
         //String::format ("material.diffuse", diff++)
         if(obj->transform->textures.size() > 0){
+            obj->transform->shAttrs["material.mDiffuse"] = std::make_shared<astro::Gfx::ShaderAttrColor>(astro::Gfx::ShaderAttrColor(astro::Color(0.0f, 0.0f, 0.0f, 1.0f)));
             for(int i = 0; i < obj->transform->textures.size(); ++i){
                 auto &tex = obj->transform->textures[i];
                 switch(tex.role){
@@ -413,7 +416,11 @@ void astro::Gfx::Pipeline::render(){
                     } break;                    
                 }
             }
+        }else{
+            obj->transform->shAttrs["material.mDiffuse"] = std::make_shared<astro::Gfx::ShaderAttrColor>(astro::Gfx::ShaderAttrColor(astro::Color(0.9f, 0.17f, 0.17f, 1.0f)));
         }
+
+        // bones
         
 
 

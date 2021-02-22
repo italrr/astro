@@ -425,7 +425,7 @@ std::shared_ptr<astro::Job> astro::expect(const std::vector<std::shared_ptr<astr
             }
         }
         if(t == ctx.listeners.size()){
-            if(allsucc){
+            if(allsucc == ctx.listeners.size()){
                 ctx.succDeps = true;
             }
             funct(ctx);

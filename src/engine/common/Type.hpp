@@ -173,7 +173,7 @@
 
         template<typename T>
         struct Vec4 {
-            T x, y, z;
+            T x, y, z, w;
             
             Vec4(T x, T y, T z, T w){
                 set(x, y, z, w);
@@ -299,6 +299,18 @@
 				return out;
 			}
 
+			astro::Mat<4, 4, T> operator*(T s) const{
+				Mat<4, 4, T> out(*this);
+
+
+				for(int i = 0; i < 4*4; ++i){
+					out.mat[i] *= s;
+				}
+
+
+				return out;
+			}			
+
 			astro::Mat<4, 4, T> translate(const astro::Vec3<T> &vec) const{
 				Mat<4, 4, T> out(*this);
 				
@@ -333,6 +345,118 @@
 				out.mat[3 + 4*3] = this->mat[3 + 4*3];
 
 				return out;
+			}
+
+			astro::Mat<4, 4, T> transpose(){
+				astro::Mat<4, 4, T> result;
+
+				result.mat[0 + 4 * 0] = this->mat[0 + 4 * 0];
+				result.mat[0 + 4 * 1] = this->mat[1 + 4 * 0];
+				result.mat[0 + 4 * 2] = this->mat[2 + 4 * 0];
+				result.mat[0 + 4 * 3] = this->mat[3 + 4 * 0];
+
+				result.mat[1 + 4 * 0] = this->mat[0 + 4 * 1];
+				result.mat[1 + 4 * 1] = this->mat[1 + 4 * 1];
+				result.mat[1 + 4 * 2] = this->mat[2 + 4 * 1];
+				result.mat[1 + 4 * 3] = this->mat[3 + 4 * 1];
+
+				result.mat[2 + 4 * 0] = this->mat[0 + 4 * 2];
+				result.mat[2 + 4 * 1] = this->mat[1 + 4 * 2];
+				result.mat[2 + 4 * 2] = this->mat[2 + 4 * 2];
+				result.mat[2 + 4 * 3] = this->mat[3 + 4 * 2];
+
+				result.mat[3 + 4 * 0] = this->mat[0 + 4 * 3];
+				result.mat[3 + 4 * 1] = this->mat[1 + 4 * 3];
+				result.mat[3 + 4 * 2] = this->mat[2 + 4 * 3];
+				result.mat[3 + 4 * 3] = this->mat[3 + 4 * 3];
+
+				return result;				
+			}
+
+			astro::Mat<4, 4, T> inverse(){
+				T c00 = this->mat[2 + 4*2] * this->mat[3 + 4*3] - this->mat[3 + 4*2] * this->mat[2 + 4*3];
+				T c02 = this->mat[1 + 4*2] * this->mat[3 + 4*3] - this->mat[3 + 4*2] * this->mat[1 + 4*3];
+				T c03 = this->mat[1 + 4*2] * this->mat[2 + 4*3] - this->mat[2 + 4*2] * this->mat[1 + 4*3];
+
+				T c04 = this->mat[2 + 4*1] * this->mat[3 + 4*3] - this->mat[3 + 4*1] * this->mat[2 + 4*3];
+				T c06 = this->mat[1 + 4*1] * this->mat[3 + 4*3] - this->mat[3 + 4*1] * this->mat[1 + 4*3];
+				T c07 = this->mat[1 + 4*1] * this->mat[2 + 4*3] - this->mat[2 + 4*1] * this->mat[1 + 4*3];
+
+				T c08 = this->mat[2 + 4*1] * this->mat[3 + 4*2] - this->mat[3 + 4*1] * this->mat[2 + 4*2];
+				T c10 = this->mat[1 + 4*1] * this->mat[3 + 4*2] - this->mat[3 + 4*1] * this->mat[1 + 4*2];
+				T c11 = this->mat[1 + 4*1] * this->mat[2 + 4*2] - this->mat[2 + 4*1] * this->mat[1 + 4*2];
+
+				T c12 = this->mat[2 + 4*0] * this->mat[3 + 4*3] - this->mat[3 + 4*0] * this->mat[2 + 4*3];
+				T c14 = this->mat[1 + 4*0] * this->mat[3 + 4*3] - this->mat[3 + 4*0] * this->mat[1 + 4*3];
+				T c15 = this->mat[1 + 4*0] * this->mat[2 + 4*3] - this->mat[2 + 4*0] * this->mat[1 + 4*3];
+
+				T c16 = this->mat[2 + 4*0] * this->mat[3 + 4*2] - this->mat[3 + 4*0] * this->mat[2 + 4*2];
+				T c18 = this->mat[1 + 4*0] * this->mat[3 + 4*2] - this->mat[3 + 4*0] * this->mat[1 + 4*2];
+				T c19 = this->mat[1 + 4*0] * this->mat[2 + 4*2] - this->mat[2 + 4*0] * this->mat[1 + 4*2];
+
+				T c20 = this->mat[2 + 4*0] * this->mat[3 + 4*1] - this->mat[3 + 4*0] * this->mat[2 + 4*1];
+				T c22 = this->mat[1 + 4*0] * this->mat[3 + 4*1] - this->mat[3 + 4*0] * this->mat[1 + 4*1];
+				T c23 = this->mat[1 + 4*0] * this->mat[2 + 4*1] - this->mat[2 + 4*0] * this->mat[1 + 4*1];
+
+				Vec4<T> fac0(c00, c00, c02, c03);
+				Vec4<T> fac1(c04, c04, c06, c07);
+				Vec4<T> fac2(c08, c08, c10, c11);
+				Vec4<T> fac3(c12, c12, c14, c15);
+				Vec4<T> fac4(c16, c16, c18, c19);
+				Vec4<T> fac5(c20, c20, c22, c23);
+
+				Vec4<T> vec0(this->mat[1 + 4*0], this->mat[0 + 4*0], this->mat[0 + 4*0], this->mat[0 + 4*0]);
+				Vec4<T> vec1(this->mat[1 + 4*1], this->mat[0 + 4*1], this->mat[0 + 4*1], this->mat[0 + 4*1]);
+				Vec4<T> vec2(this->mat[1 + 4*2], this->mat[0 + 4*2], this->mat[0 + 4*2], this->mat[0 + 4*2]);
+				Vec4<T> vec3(this->mat[1 + 4*3], this->mat[0 + 4*3], this->mat[0 + 4*3], this->mat[0 + 4*3]);
+
+				Vec4<T> inv0(vec1 * fac0 - vec2 * fac1 + vec3 * fac2);
+				Vec4<T> inv1(vec0 * fac0 - vec2 * fac3 + vec3 * fac4);
+				Vec4<T> inv2(vec0 * fac1 - vec1 * fac3 + vec3 * fac5);
+				Vec4<T> inv3(vec0 * fac2 - vec1 * fac4 + vec2 * fac5);
+
+				Vec4<T> signA(+1, -1, +1, -1);
+				Vec4<T> signB(-1, +1, -1, +1);
+
+				Mat<4, 4, T> inv;
+
+				Vec4<T> col1 = inv0 * signA;
+				Vec4<T> col2 = inv1 * signB;
+				Vec4<T> col3 = inv2 * signA;
+				Vec4<T> col4 = inv3 * signB;
+
+				inv.mat[0 + 4*0] = col1.x;
+				inv.mat[0 + 4*1] = col1.y;
+				inv.mat[0 + 4*2] = col1.z;
+				inv.mat[0 + 4*3] = col1.w;
+
+
+				inv.mat[1 + 4*0] = col2.x;
+				inv.mat[1 + 4*1] = col2.y;
+				inv.mat[1 + 4*2] = col2.z;
+				inv.mat[1 + 4*3] = col2.w;				
+				
+			
+				inv.mat[2 + 4*0] = col3.x;
+				inv.mat[2 + 4*1] = col3.y;
+				inv.mat[2 + 4*2] = col3.z;
+				inv.mat[2 + 4*3] = col3.w;
+
+
+				inv.mat[3 + 4*0] = col4.x;
+				inv.mat[3 + 4*1] = col4.y;
+				inv.mat[3 + 4*2] = col4.z;
+				inv.mat[3 + 4*3] = col4.w;
+
+
+				Vec4<T> row0(inv.mat[0 + 4*0], inv.mat[1 + 4*0], inv.mat[2 + 4*0], inv.mat[3 + 4*0]);
+
+				Vec4<T> dot0(this->mat[0+0*4] * row0.x, this->mat[0+1*4] * row0.y, this->mat[0+2*4] * row0.z, this->mat[0+3*4] * row0.w);
+				T dot1 = (dot0.x + dot0.y) + (dot0.z + dot0.w);
+
+				T ood = ((T)1) / dot1;
+
+				return inv * ood;				
 			}
 
 			astro::Mat<4, 4, T> rotate(T angle, const astro::Vec3<T> &vec) const{

@@ -169,7 +169,7 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateTexture2D
     return result;
 }
 
-std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateMesh(const std::vector<astro::Gfx::Vertex> &vertices, const std::vector<unsigned int> &indices){
+std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateMesh(const std::vector<astro::Gfx::Vertex> &vertices, const std::vector<unsigned int> &indices, bool useBones){
     auto result = astro::makeResult(ResultType::Success);
 
     unsigned int vao, vbo, ebo;
@@ -201,9 +201,15 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateMesh(cons
     // bitangent
     glEnableVertexAttribArray(4);
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
+    // ids
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(5, 4, GL_INT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, id));
+    // weights
+    glEnableVertexAttribArray(6);
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, weight));
 
+    glBindVertexArray(0);        
 
-    glBindVertexArray(0);
 
     result->payload->write(&vao, sizeof(vao));
     result->payload->write(&vbo, sizeof(vbo));    
@@ -277,7 +283,8 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::compileShader(con
     glGetShaderInfoLog(vertShader, logLength, NULL, buffer);
     str = std::string(buffer);
     if(str.length() > 0) {
-        result->setFailure(astro::String::format("compilation error: \n\n%s\n\n", str.c_str()));
+        result->setFailure(astro::String::format("compilation error at vert: \n\n%s\n\n", str.c_str()));
+        return result;
     }
     str = "";
     // compile frag
@@ -289,7 +296,8 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::compileShader(con
     glGetShaderInfoLog(fragShader, logLength, NULL, buffer);
     str = std::string(buffer);
     if(str.length() > 0) {
-        result->setFailure(astro::String::format("compilation error: \n\n%s\n\n", str.c_str()));
+        result->setFailure(astro::String::format("compilation error at frag: \n\n%s\n\n", str.c_str()));
+        return result;
     }
     str = "";
     // put together
@@ -304,7 +312,7 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::compileShader(con
     glGetProgramInfoLog(shaderId, logLength, NULL, buffer);
     str = std::string(buffer);
     if(str.length() > 0) {
-        result->setFailure(astro::String::format("compilation error: \n\n%s\n\n", str.c_str()));
+        result->setFailure(astro::String::format("compilation error at link: \n\n%s\n\n", str.c_str()));
         return result;
     }
     str = "";

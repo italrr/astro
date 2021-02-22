@@ -27,7 +27,7 @@
 														unsigned int strides,
                                                         bool textured);             
                 std::shared_ptr<astro::Result> generateTexture2D(unsigned char *data, int w, int h, int format);
-                std::shared_ptr<astro::Result> generateMesh(const std::vector<astro::Gfx::Vertex> &vertices, const std::vector<unsigned int> &indices);
+                std::shared_ptr<astro::Result> generateMesh(const std::vector<astro::Gfx::Vertex> &vertices, const std::vector<unsigned int> &indices, bool useBones);
 
                 // renders
                 bool renderPrimVertBuffer(astro::Gfx::RenderObject *obj);

@@ -1,4 +1,7 @@
 #version 450 core
+
+#define MAX_LIGHTS 5
+
 out vec4 FragColor;
 
 struct Material {
@@ -7,6 +10,7 @@ struct Material {
     sampler2D normal;   
     sampler2D height;   
     float shininess;
+    vec3 mDiffuse; // manual diffuse. available when texture diffuse isn't
 }; 
 
 struct DirLight {
@@ -47,8 +51,9 @@ struct SpotLight {
 in vec3 FragPos;  
 in vec3 Normal;  
 in vec2 TexCoords;
+flat in ivec4 ID;
+in vec4 Weight;
 
-#define MAX_LIGHTS 5
 
 uniform vec3 viewPos;
 uniform DirLight dirLights[MAX_LIGHTS];
@@ -64,8 +69,7 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 
-void main()
-{
+void main(){
     
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
@@ -80,7 +84,6 @@ void main()
         result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);   
     }
     
-    // apply spot lights
     for(int i = 0; i < n_spot_lights; ++i){
         result += CalcSpotLight(spotLights[i], norm, FragPos, viewDir);    
     }
@@ -98,8 +101,11 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir){
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
 
-    vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
-    vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
+    bool chMDiff = (material.mDiffuse.x == 0.0 && material.mDiffuse.y == 0.0 && material.mDiffuse.z == 0.0);
+    vec3 useDiff = chMDiff ? vec3(texture(material.diffuse, TexCoords)) : material.mDiffuse;
+
+    vec3 ambient = light.ambient * useDiff;
+    vec3 diffuse = light.diffuse * diff * Weight.xyz * useDiff;
     vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
     return (ambient + diffuse + specular);
 }

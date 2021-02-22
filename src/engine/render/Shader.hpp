@@ -112,6 +112,7 @@
 
             struct ShaderAttrMat4 : ShaderAttr {
                 astro::Mat<4, 4, float> mat;
+                int n;
                 ShaderAttrMat4(){
                     this->type = ShaderAttrType::MAT4;
                 }

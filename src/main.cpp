@@ -19,6 +19,8 @@ int main(int argc, const char *argv[]){
 	auto stt = astro::ticks();
 	float c = 0;
 
+// glm::transpose
+// glm::inverse(glm::mat4() * float);
 	// glm::scale
 
 
@@ -67,14 +69,14 @@ int main(int argc, const char *argv[]){
 	//
 	auto gfxthrd = astro::spawn([&](astro::Job &ctx){ // loop
 		uint64 delta = astro::ticks()-stt;
-		c += 0.15f;
+		c += 0.008f;
 
 
 		model->transform->model = astro::MAT4Identity.rotate(astro::Math::rads(c), astro::Vec3<float>(1.0f, 0.7f, 0.5f)).scale(astro::Vec3<float>(0.05f, 0.05f, 0.05f));
 		// model = model.translate(astro::Vec3<float>(0.0f, 0.0f, 0.0f));
 
 
-		float cameraSpeed = 0.2f; 
+		float cameraSpeed = 0.02f; 
 		if (astro::Input::keyboardCheck(astro::Input::Key::W))
 			pipeline.camera.setPosition(pipeline.camera.position - astro::Vec3<float>(0.0f, 0.0f, 1.0f) * cameraSpeed);
 		if (astro::Input::keyboardCheck(astro::Input::Key::S))
@@ -115,7 +117,7 @@ int main(int argc, const char *argv[]){
 
 	auto indexer = astro::Core::getIndexer();
 
-	indexer->asyncFindManyByName({"b_primitive_f.glsl", "natha.dae"}, [&](std::vector<std::shared_ptr<astro::Indexing::Index>> &files){
+	indexer->asyncFindManyByName({"b_primitive_f.glsl", "Minotaur@Walk.FBX"}, [&](std::vector<std::shared_ptr<astro::Indexing::Index>> &files){
 		auto fileShader = files[0];
 		auto modelFile = files[1];
 
