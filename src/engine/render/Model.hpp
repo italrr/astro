@@ -7,11 +7,6 @@
     namespace astro {
         namespace Gfx {
 
-            struct BoneInfo {
-                astro::Mat<4,4, float> transf;
-                astro::Mat<4,4, float> offset;
-            };
-
             struct SkeletalFrameRotation {
                 astro::Vec4<float> rotation;
                 float time;
@@ -27,10 +22,47 @@
                 float time;
             };                        
 
-            struct SkeletalAnimation {
+            struct Bone {
+                std::string name;
+                unsigned int index;
                 std::vector<astro::Gfx::SkeletalFrameRotation> rotations;
                 std::vector<astro::Gfx::SkeletalFrameTranslation> translations;
-                std::vector<astro::Gfx::SkeletalFrameScaling> scalings;
+                std::vector<astro::Gfx::SkeletalFrameScaling> scalings;   
+            };
+
+            struct SkeletalHierarchy {
+                std::string name;
+                astro::Mat<4, 4, float> mat;
+                std::shared_ptr<astro::Gfx::SkeletalHierarchy> parent;
+                std::vector<std::shared_ptr<astro::Gfx::SkeletalHierarchy>> children;
+                astro::Mat<4, 4, float> getTransform(){
+                    auto b = this->parent.get();
+                    std::vector<astro::Mat<4, 4, float>> mats;
+                    while(b != NULL){
+                        mats.push_back(b->mat);
+                        b = b->parent.get();
+                    }
+                    astro::Mat<4, 4, float> total = MAT4Identity;
+                    for(int i = 0; i < mats.size(); ++i){
+                        total = total * mats[mats.size() - 1 - i];
+                    }
+                    return total;
+                }
+                SkeletalHierarchy(){
+                    parent = std::shared_ptr<astro::Gfx::SkeletalHierarchy>(NULL);
+                }
+            };
+
+            struct BoneInfo {
+                std::shared_ptr<astro::Gfx::SkeletalHierarchy> skeleton;
+                astro::Mat<4,4, float> transf;
+                astro::Mat<4,4, float> offset;
+                std::string name;
+            };        
+
+            struct SkeletalAnimation {
+                std::unordered_map<std::string, std::shared_ptr<astro::Gfx::Bone>> bones;
+                std::vector<astro::Mat<4, 4, float>> hierarchy;
                 std::string name;
                 float ticksPerSecond;
                 float duration;
@@ -44,7 +76,6 @@
                 unsigned int nIndices;
                 unsigned int bVertex;
                 unsigned int bIndex;
-                unsigned int nBones;      
                 std::vector<astro::Gfx::Vertex> vertices;
                 std::vector<unsigned int> indices; 
                 Mesh(){
@@ -52,7 +83,6 @@
                     vao = 0;
                     vbo = 0;
                     ebo = 0;
-                    nBones = 0;
                     mIndex = 0;
                     nIndices = 0;
                     bVertex = 0;
@@ -60,58 +90,6 @@
                 }
                 void render();
             };
-
-            // struct Skeleton;
-            // struct Bone {
-            //     unsigned int id;
-            //     std::string name;
-            //     // std::shared_ptr<astro::Gfx::Mesh> mesh;
-            //     std::shared_ptr<astro::Gfx::Bone> parent;
-            //     // astro::Gfx::Skeleton *skeleton;
-            //     astro::Mat<4, 4, float> offsetMat;
-            //     astro::Mat<4, 4, float> trans;
-            //     astro::Mat<4, 4, float> mTransformation;
-            //     Bone();
-            //     // Bone(const std::shared_ptr<astro::Gfx::Mesh> &mesh, unsigned int id, const std::string &name, const astro::Mat<4, 4, float> &offsetMat);
-            //     astro::Mat<4, 4, float> getParentTrans();
-            // };            
-
-            // struct Skeleton {
-            //     std::unordered_map<std::string, std::shared_ptr<astro::Gfx::Bone>> bones;
-            //     astro::Mat<4,4, float> gInvTrans;
-            //     std::vector<astro::Mat<4,4, float>> boneMats;
-                
-            //     std::shared_ptr<astro::Gfx::Bone> findBone(const std::string &name){
-            //         auto it = bones.find(name);
-            //         if(it != bones.end()){
-            //             return it->second;
-            //         }
-            //         return std::shared_ptr<astro::Gfx::Bone>(NULL);
-            //     }
-                
-                
-            //     void init(const std::unordered_map<std::string, std::shared_ptr<astro::Gfx::Bone>> &bones, const astro::Mat<4,4, float> &gInvTrans){
-            //         this->bones = bones;
-            //         this->gInvTrans = gInvTrans;
-            //         // for(int i = 0; i < this->bones.size(); ++i){
-            //         //     this->bones[i]->skeleton = this;
-            //         // }
-            //     }
-            //     void update(){
-            //         // if(bones.size() == 0){
-            //         //     return;
-            //         // }
-            //         // boneMats.clear();
-            //         // for(int i = 0; i < 100; ++i){
-            //         //     if(i > bones.size() - 1){
-            //         //         boneMats.push_back(astro::Mat<4, 4, float>(MAT4Identity));
-            //         //         continue;
-            //         //     }
-            //         //     auto conc = bones[i]->getParentTrans() * bones[i]->trans;
-            //         //     boneMats.push_back(gInvTrans * conc * bones[i]->offsetMat);
-            //         // }
-            //     }
-            // };
 
             struct TextureDependency {
                 std::shared_ptr<astro::Indexing::Index> file;
@@ -123,14 +101,18 @@
                 std::unordered_map<std::string, std::shared_ptr<astro::Gfx::SkeletalAnimation>> animations;
                 std::shared_ptr<astro::Gfx::SkeletalAnimation> currentAnim;
                 std::unordered_map<std::string, unsigned int> boneMapping;
-                std::vector<astro::Gfx::TextureDependency>  texDeps; // quick ref to the expect texture files
+                std::vector<astro::Gfx::TextureDependency>  texDeps; // quick ref to the expected texture files
                 astro::Mat<4,4, float> gInvTrans;
+                std::unordered_map<std::string, std::shared_ptr<astro::Gfx::SkeletalHierarchy>> skeleton;
+                std::shared_ptr<astro::Gfx::SkeletalHierarchy> skeletonRoot;
+                unsigned int nBones;
                 std::vector<std::shared_ptr<astro::Gfx::Mesh>> meshes;       
                 std::shared_ptr<astro::Result> unload();
                 std::shared_ptr<astro::Result> load(const std::shared_ptr<astro::Indexing::Index> &file);
                 void updateAnim(float time);
                 void render();
                 Model(){
+                    nBones = 0;
                     rObjtype = astro::Gfx::RenderObjectType::MODEL;
                     rscType = astro::Resource::ResourceType::MODEL;
                 }                       

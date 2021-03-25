@@ -14,24 +14,39 @@ out vec2 TexCoords;
 out ivec4 ID;
 out vec4 Weight;
 
-const int MAX_BONES = 100;
-
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform mat4 bones[MAX_BONES];
+
+const int MAX_BONES = 100; // Max number of bones
+uniform mat4 gBones[MAX_BONES]; // Bone transformations 
 
 void main(){
 
-    mat4 bMatrix = bones[ID[0]] * Weight[0];
-    bMatrix += bones[ID[1]] * Weight[1];
-    bMatrix += bones[ID[2]] * Weight[2];
-    bMatrix += bones[ID[3]] * Weight[3];
+   	mat4 BoneTransform = gBones[ VertID[0] ] * VertWeight[0];
+	BoneTransform += gBones[ VertID[1] ] * VertWeight[1];
+    BoneTransform += gBones[ VertID[2] ] * VertWeight[2];
+    BoneTransform += gBones[ VertID[3] ] * VertWeight[3];
 
-    FragPos = vec3(model * vec4(aPos, 1.0));
-    Normal = mat3(transpose(inverse(model))) * aNormal;  
+    // FragPos = vec3(model * vec4(aPos, 1.0));
+    // Normal = mat3(transpose(inverse(model))) * aNormal;  
+
+    // normal
+    vec4 tNormal = BoneTransform * vec4(aNormal, 1.0);
+    // vec4 tNormal = vec4(aNormal, 1.0);
+    
+    mat3 NormalMatrix = mat3(transpose(inverse(model)));
+    Normal = normalize(mat4(NormalMatrix) * tNormal).xyz;
+
+    // position
+    vec4 tpos = BoneTransform * vec4(aPos, 1.0);
+    // vec4 tpos = vec4(aPos, 1.0);
+
+    gl_Position = (projection * view * model) * tpos;
+
+    // out
     TexCoords = aTexCoords;
     ID = VertID;
-    Weight = VertWeight;
-    gl_Position = projection * view * vec4(FragPos, 1.0);
+    Weight = VertWeight;    
+    FragPos = (model * tpos).xyz;
 }

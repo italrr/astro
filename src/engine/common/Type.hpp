@@ -8,7 +8,7 @@
 	#define int8 int8_t
 	#define uint8 uint8_t
 	#define int16 int16_t
-	#define uin16 uint16_t
+	#define uint16 uint16_t
 	#define int32 int32_t
 	#define uint32 uint32_t
 	#define int64 int64_t
@@ -284,17 +284,50 @@
 				}
 			}
 
-			astro::Mat<4, 4, T> operator*(const astro::Mat<4, 4, T> &m2) const{
-				astro::Mat<4, 4, T> out(MAT4FIdentity);
-				unsigned int row, column, row_offset;
+			Mat(const Mat<3, 3, T> &mat3){
+				if(w == 4 && h == 4){
+					mat[0 + 0*4] = mat3.mat[0 + 0*3];// AssimpMatrix.a1;
+					mat[0 + 1*4] = mat3.mat[1 + 0*3]; //AssimpMatrix.a2;
+					mat[0 + 2*4] = mat3.mat[2 + 0*3]; // AssimpMatrix.a3;
+					mat[0 + 3*4] = 0.0f;
+					
+					mat[1 + 0*4] = mat3.mat[0 + 1*3]; //AssimpMatrix.b1;
+					mat[1 + 1*4] = mat3.mat[1 + 1*3]; //AssimpMatrix.b2;
+					mat[1 + 2*4] = mat3.mat[2 + 1*3]; // AssimpMatrix.b3;
+					mat[1 + 3*4] = 0.0f;
 
-				for (row = 0, row_offset = row * 4; row < 4; ++row, row_offset = row * 4)
-					for (column = 0; column < 4; ++column)
-						out.mat[row_offset + column] =
-							(this->mat[row_offset + 0] * m2.mat[column + 0]) +
-							(this->mat[row_offset + 1] * m2.mat[column + 4]) +
-							(this->mat[row_offset + 2] * m2.mat[column + 8]) +
-							(this->mat[row_offset + 3] * m2.mat[column + 12]);
+					mat[2 + 0*4] = mat3.mat[0 + 2*3]; //AssimpMatrix.c1;
+					mat[2 + 1*4] = mat3.mat[1 + 2*3]; //AssimpMatrix.c2;
+					mat[2 + 2*4] = mat3.mat[2 + 2*3]; // AssimpMatrix.c3;
+					mat[2 + 3*4] = 0.0f;
+
+					mat[3 + 0*4] = 0.0f;
+					mat[3 + 1*4] = 0.0f;
+					mat[3 + 2*4] = 0.0f;
+					mat[3 + 3*4] = 1.0f;
+				}			
+			}
+
+			astro::Mat<4, 4, T> operator*(const astro::Mat<4, 4, T> &m2) const{
+				astro::Mat<4, 4, T> out;
+				// unsigned int row, column, row_offset;
+
+				// for (row = 0, row_offset = row * 4; row < 4; ++row, row_offset = row * 4)
+				// 	for (column = 0; column < 4; ++column)
+				// 		out.mat[row_offset + column] =
+				// 			(this->mat[row_offset + 0] * m2.mat[column + 0]) +
+				// 			(this->mat[row_offset + 1] * m2.mat[column + 4]) +
+				// 			(this->mat[row_offset + 2] * m2.mat[column + 8]) +
+				// 			(this->mat[row_offset + 3] * m2.mat[column + 12]);
+
+				for (unsigned int i = 0; i < 4; i++) {
+					for (unsigned int j = 0; j < 4; j++) {
+						out.mat[i + j*4] = mat[i + 0*4] * m2.mat[0 + j*4] +
+							mat[i + 1*4] * m2.mat[1 + j*4] +
+							mat[i + 2*4] * m2.mat[2 + j*4] +
+							mat[i + 3*4] * m2.mat[3 + j*4];
+					}
+				}
 
 				return out;
 			}
@@ -373,90 +406,46 @@
 				return result;				
 			}
 
+			T determinant(){
+				if(w == 4 && h == 4){
+				return this->mat[0 + 4*0] * this->mat[1 + 4*1] * this->mat[2 + 4*2] * this->mat[3 + 4*3] - this->mat[0 + 4*0] * this->mat[1 + 4*1] * this->mat[2 + 4*3] * this->mat[3 + 4*2] + this->mat[0 + 4*0] * this->mat[1 + 4*2] * this->mat[2 + 4*3] * this->mat[3 + 4*1] - this->mat[0 + 4*0] * this->mat[1 + 4*2] * this->mat[2 + 4*1] * this->mat[3 + 4*3]
+						+ this->mat[0 + 4*0] * this->mat[1 + 4*3] * this->mat[2 + 4*1] * this->mat[3 + 4*2] - this->mat[0 + 4*0] * this->mat[1 + 4*3] * this->mat[2 + 4*2] * this->mat[3 + 4*1] - this->mat[0 + 4*1] * this->mat[1 + 4*2] * this->mat[2 + 4*3] * this->mat[3 + 4*0] + this->mat[0 + 4*1] * this->mat[1 + 4*2] * this->mat[2 + 4*0] * this->mat[3 + 4*3]
+						- this->mat[0 + 4*1] * this->mat[1 + 4*3] * this->mat[2 + 4*0] * this->mat[3 + 4*2] + this->mat[0 + 4*1] * this->mat[1 + 4*3] * this->mat[2 + 4*2] * this->mat[3 + 4*0] - this->mat[0 + 4*1] * this->mat[1 + 4*0] * this->mat[2 + 4*2] * this->mat[3 + 4*3] + this->mat[0 + 4*1] * this->mat[1 + 4*0] * this->mat[2 + 4*3] * this->mat[3 + 4*2]
+						+ this->mat[0 + 4*2] * this->mat[1 + 4*3] * this->mat[2 + 4*0] * this->mat[3 + 4*1] - this->mat[0 + 4*2] * this->mat[1 + 4*3] * this->mat[2 + 4*1] * this->mat[3 + 4*0] + this->mat[0 + 4*2] * this->mat[1 + 4*0] * this->mat[2 + 4*1] * this->mat[3 + 4*3] - this->mat[0 + 4*2] * this->mat[1 + 4*0] * this->mat[2 + 4*3] * this->mat[3 + 4*1]
+						+ this->mat[0 + 4*2] * this->mat[1 + 4*1] * this->mat[2 + 4*3] * this->mat[3 + 4*0] - this->mat[0 + 4*2] * this->mat[1 + 4*1] * this->mat[2 + 4*0] * this->mat[3 + 4*3] - this->mat[0 + 4*3] * this->mat[1 + 4*0] * this->mat[2 + 4*1] * this->mat[3 + 4*2] + this->mat[0 + 4*3] * this->mat[1 + 4*0] * this->mat[2 + 4*2] * this->mat[3 + 4*1]
+						- this->mat[0 + 4*3] * this->mat[1 + 4*1] * this->mat[2 + 4*2] * this->mat[3 + 4*0] + this->mat[0 + 4*3] * this->mat[1 + 4*1] * this->mat[2 + 4*0] * this->mat[3 + 4*2] - this->mat[0 + 4*3] * this->mat[1 + 4*2] * this->mat[2 + 4*0] * this->mat[3 + 4*1] + this->mat[0 + 4*3] * this->mat[1 + 4*2] * this->mat[2 + 4*1] * this->mat[3 + 4*0];
+				}
+				return static_cast<T>(0);
+			}
+
 			astro::Mat<4, 4, T> inverse(){
-				T c00 = this->mat[2 + 4*2] * this->mat[3 + 4*3] - this->mat[3 + 4*2] * this->mat[2 + 4*3];
-				T c02 = this->mat[1 + 4*2] * this->mat[3 + 4*3] - this->mat[3 + 4*2] * this->mat[1 + 4*3];
-				T c03 = this->mat[1 + 4*2] * this->mat[2 + 4*3] - this->mat[2 + 4*2] * this->mat[1 + 4*3];
+				astro::Mat<4, 4, float> reversed;
+				float det = determinant();
+				if(det == 0.0f){
+					return reversed;
+				}
 
-				T c04 = this->mat[2 + 4*1] * this->mat[3 + 4*3] - this->mat[3 + 4*1] * this->mat[2 + 4*3];
-				T c06 = this->mat[1 + 4*1] * this->mat[3 + 4*3] - this->mat[3 + 4*1] * this->mat[1 + 4*3];
-				T c07 = this->mat[1 + 4*1] * this->mat[2 + 4*3] - this->mat[2 + 4*1] * this->mat[1 + 4*3];
-
-				T c08 = this->mat[2 + 4*1] * this->mat[3 + 4*2] - this->mat[3 + 4*1] * this->mat[2 + 4*2];
-				T c10 = this->mat[1 + 4*1] * this->mat[3 + 4*2] - this->mat[3 + 4*1] * this->mat[1 + 4*2];
-				T c11 = this->mat[1 + 4*1] * this->mat[2 + 4*2] - this->mat[2 + 4*1] * this->mat[1 + 4*2];
-
-				T c12 = this->mat[2 + 4*0] * this->mat[3 + 4*3] - this->mat[3 + 4*0] * this->mat[2 + 4*3];
-				T c14 = this->mat[1 + 4*0] * this->mat[3 + 4*3] - this->mat[3 + 4*0] * this->mat[1 + 4*3];
-				T c15 = this->mat[1 + 4*0] * this->mat[2 + 4*3] - this->mat[2 + 4*0] * this->mat[1 + 4*3];
-
-				T c16 = this->mat[2 + 4*0] * this->mat[3 + 4*2] - this->mat[3 + 4*0] * this->mat[2 + 4*2];
-				T c18 = this->mat[1 + 4*0] * this->mat[3 + 4*2] - this->mat[3 + 4*0] * this->mat[1 + 4*2];
-				T c19 = this->mat[1 + 4*0] * this->mat[2 + 4*2] - this->mat[2 + 4*0] * this->mat[1 + 4*2];
-
-				T c20 = this->mat[2 + 4*0] * this->mat[3 + 4*1] - this->mat[3 + 4*0] * this->mat[2 + 4*1];
-				T c22 = this->mat[1 + 4*0] * this->mat[3 + 4*1] - this->mat[3 + 4*0] * this->mat[1 + 4*1];
-				T c23 = this->mat[1 + 4*0] * this->mat[2 + 4*1] - this->mat[2 + 4*0] * this->mat[1 + 4*1];
-
-				Vec4<T> fac0(c00, c00, c02, c03);
-				Vec4<T> fac1(c04, c04, c06, c07);
-				Vec4<T> fac2(c08, c08, c10, c11);
-				Vec4<T> fac3(c12, c12, c14, c15);
-				Vec4<T> fac4(c16, c16, c18, c19);
-				Vec4<T> fac5(c20, c20, c22, c23);
-
-				Vec4<T> vec0(this->mat[1 + 4*0], this->mat[0 + 4*0], this->mat[0 + 4*0], this->mat[0 + 4*0]);
-				Vec4<T> vec1(this->mat[1 + 4*1], this->mat[0 + 4*1], this->mat[0 + 4*1], this->mat[0 + 4*1]);
-				Vec4<T> vec2(this->mat[1 + 4*2], this->mat[0 + 4*2], this->mat[0 + 4*2], this->mat[0 + 4*2]);
-				Vec4<T> vec3(this->mat[1 + 4*3], this->mat[0 + 4*3], this->mat[0 + 4*3], this->mat[0 + 4*3]);
-
-				Vec4<T> inv0(vec1 * fac0 - vec2 * fac1 + vec3 * fac2);
-				Vec4<T> inv1(vec0 * fac0 - vec2 * fac3 + vec3 * fac4);
-				Vec4<T> inv2(vec0 * fac1 - vec1 * fac3 + vec3 * fac5);
-				Vec4<T> inv3(vec0 * fac2 - vec1 * fac4 + vec2 * fac5);
-
-				Vec4<T> signA(+1, -1, +1, -1);
-				Vec4<T> signB(-1, +1, -1, +1);
-
-				Mat<4, 4, T> inv;
-
-				Vec4<T> col1 = inv0 * signA;
-				Vec4<T> col2 = inv1 * signB;
-				Vec4<T> col3 = inv2 * signA;
-				Vec4<T> col4 = inv3 * signB;
-
-				inv.mat[0 + 4*0] = col1.x;
-				inv.mat[0 + 4*1] = col1.y;
-				inv.mat[0 + 4*2] = col1.z;
-				inv.mat[0 + 4*3] = col1.w;
+				float invdet = 1.0f / det;
 
 
-				inv.mat[1 + 4*0] = col2.x;
-				inv.mat[1 + 4*1] = col2.y;
-				inv.mat[1 + 4*2] = col2.z;
-				inv.mat[1 + 4*3] = col2.w;				
-				
-			
-				inv.mat[2 + 4*0] = col3.x;
-				inv.mat[2 + 4*1] = col3.y;
-				inv.mat[2 + 4*2] = col3.z;
-				inv.mat[2 + 4*3] = col3.w;
+				reversed.mat[0 + 4*0] = invdet  * (this->mat[1 + 4*1] * (this->mat[2 + 4*2] * this->mat[3 + 4*3] - this->mat[2 + 4*3] * this->mat[3 + 4*2]) + this->mat[1 + 4*2] * (this->mat[2 + 4*3] * this->mat[3 + 4*1] - this->mat[2 + 4*1] * this->mat[3 + 4*3]) + this->mat[1 + 4*3] * (this->mat[2 + 4*1] * this->mat[3 + 4*2] - this->mat[2 + 4*2] * this->mat[3 + 4*1]));
+				reversed.mat[0 + 4*1] = -invdet * (this->mat[0 + 4*1] * (this->mat[2 + 4*2] * this->mat[3 + 4*3] - this->mat[2 + 4*3] * this->mat[3 + 4*2]) + this->mat[0 + 4*2] * (this->mat[2 + 4*3] * this->mat[3 + 4*1] - this->mat[2 + 4*1] * this->mat[3 + 4*3]) + this->mat[0 + 4*3] * (this->mat[2 + 4*1] * this->mat[3 + 4*2] - this->mat[2 + 4*2] * this->mat[3 + 4*1]));
+				reversed.mat[0 + 4*2] = invdet  * (this->mat[0 + 4*1] * (this->mat[1 + 4*2] * this->mat[3 + 4*3] - this->mat[1 + 4*3] * this->mat[3 + 4*2]) + this->mat[0 + 4*2] * (this->mat[1 + 4*3] * this->mat[3 + 4*1] - this->mat[1 + 4*1] * this->mat[3 + 4*3]) + this->mat[0 + 4*3] * (this->mat[1 + 4*1] * this->mat[3 + 4*2] - this->mat[1 + 4*2] * this->mat[3 + 4*1]));
+				reversed.mat[0 + 4*3] = -invdet * (this->mat[0 + 4*1] * (this->mat[1 + 4*2] * this->mat[2 + 4*3] - this->mat[1 + 4*3] * this->mat[2 + 4*2]) + this->mat[0 + 4*2] * (this->mat[1 + 4*3] * this->mat[2 + 4*1] - this->mat[1 + 4*1] * this->mat[2 + 4*3]) + this->mat[0 + 4*3] * (this->mat[1 + 4*1] * this->mat[2 + 4*2] - this->mat[1 + 4*2] * this->mat[2 + 4*1]));
+				reversed.mat[1 + 4*0] = -invdet * (this->mat[1 + 4*0] * (this->mat[2 + 4*2] * this->mat[3 + 4*3] - this->mat[2 + 4*3] * this->mat[3 + 4*2]) + this->mat[1 + 4*2] * (this->mat[2 + 4*3] * this->mat[3 + 4*0] - this->mat[2 + 4*0] * this->mat[3 + 4*3]) + this->mat[1 + 4*3] * (this->mat[2 + 4*0] * this->mat[3 + 4*2] - this->mat[2 + 4*2] * this->mat[3 + 4*0]));
+				reversed.mat[1 + 4*1] = invdet  * (this->mat[0 + 4*0] * (this->mat[2 + 4*2] * this->mat[3 + 4*3] - this->mat[2 + 4*3] * this->mat[3 + 4*2]) + this->mat[0 + 4*2] * (this->mat[2 + 4*3] * this->mat[3 + 4*0] - this->mat[2 + 4*0] * this->mat[3 + 4*3]) + this->mat[0 + 4*3] * (this->mat[2 + 4*0] * this->mat[3 + 4*2] - this->mat[2 + 4*2] * this->mat[3 + 4*0]));
+				reversed.mat[1 + 4*2] = -invdet * (this->mat[0 + 4*0] * (this->mat[1 + 4*2] * this->mat[3 + 4*3] - this->mat[1 + 4*3] * this->mat[3 + 4*2]) + this->mat[0 + 4*2] * (this->mat[1 + 4*3] * this->mat[3 + 4*0] - this->mat[1 + 4*0] * this->mat[3 + 4*3]) + this->mat[0 + 4*3] * (this->mat[1 + 4*0] * this->mat[3 + 4*2] - this->mat[1 + 4*2] * this->mat[3 + 4*0]));
+				reversed.mat[1 + 4*3] = invdet  * (this->mat[0 + 4*0] * (this->mat[1 + 4*2] * this->mat[2 + 4*3] - this->mat[1 + 4*3] * this->mat[2 + 4*2]) + this->mat[0 + 4*2] * (this->mat[1 + 4*3] * this->mat[2 + 4*0] - this->mat[1 + 4*0] * this->mat[2 + 4*3]) + this->mat[0 + 4*3] * (this->mat[1 + 4*0] * this->mat[2 + 4*2] - this->mat[1 + 4*2] * this->mat[2 + 4*0]));
+				reversed.mat[2 + 4*0] = invdet  * (this->mat[1 + 4*0] * (this->mat[2 + 4*1] * this->mat[3 + 4*3] - this->mat[2 + 4*3] * this->mat[3 + 4*1]) + this->mat[1 + 4*1] * (this->mat[2 + 4*3] * this->mat[3 + 4*0] - this->mat[2 + 4*0] * this->mat[3 + 4*3]) + this->mat[1 + 4*3] * (this->mat[2 + 4*0] * this->mat[3 + 4*1] - this->mat[2 + 4*1] * this->mat[3 + 4*0]));
+				reversed.mat[2 + 4*1] = -invdet * (this->mat[0 + 4*0] * (this->mat[2 + 4*1] * this->mat[3 + 4*3] - this->mat[2 + 4*3] * this->mat[3 + 4*1]) + this->mat[0 + 4*1] * (this->mat[2 + 4*3] * this->mat[3 + 4*0] - this->mat[2 + 4*0] * this->mat[3 + 4*3]) + this->mat[0 + 4*3] * (this->mat[2 + 4*0] * this->mat[3 + 4*1] - this->mat[2 + 4*1] * this->mat[3 + 4*0]));
+				reversed.mat[2 + 4*2] = invdet  * (this->mat[0 + 4*0] * (this->mat[1 + 4*1] * this->mat[3 + 4*3] - this->mat[1 + 4*3] * this->mat[3 + 4*1]) + this->mat[0 + 4*1] * (this->mat[1 + 4*3] * this->mat[3 + 4*0] - this->mat[1 + 4*0] * this->mat[3 + 4*3]) + this->mat[0 + 4*3] * (this->mat[1 + 4*0] * this->mat[3 + 4*1] - this->mat[1 + 4*1] * this->mat[3 + 4*0]));
+				reversed.mat[2 + 4*3] = -invdet * (this->mat[0 + 4*0] * (this->mat[1 + 4*1] * this->mat[2 + 4*3] - this->mat[1 + 4*3] * this->mat[2 + 4*1]) + this->mat[0 + 4*1] * (this->mat[1 + 4*3] * this->mat[2 + 4*0] - this->mat[1 + 4*0] * this->mat[2 + 4*3]) + this->mat[0 + 4*3] * (this->mat[1 + 4*0] * this->mat[2 + 4*1] - this->mat[1 + 4*1] * this->mat[2 + 4*0]));
+				reversed.mat[3 + 4*0] = -invdet * (this->mat[1 + 4*0] * (this->mat[2 + 4*1] * this->mat[3 + 4*2] - this->mat[2 + 4*2] * this->mat[3 + 4*1]) + this->mat[1 + 4*1] * (this->mat[2 + 4*2] * this->mat[3 + 4*0] - this->mat[2 + 4*0] * this->mat[3 + 4*2]) + this->mat[1 + 4*2] * (this->mat[2 + 4*0] * this->mat[3 + 4*1] - this->mat[2 + 4*1] * this->mat[3 + 4*0]));
+				reversed.mat[3 + 4*1] = invdet  * (this->mat[0 + 4*0] * (this->mat[2 + 4*1] * this->mat[3 + 4*2] - this->mat[2 + 4*2] * this->mat[3 + 4*1]) + this->mat[0 + 4*1] * (this->mat[2 + 4*2] * this->mat[3 + 4*0] - this->mat[2 + 4*0] * this->mat[3 + 4*2]) + this->mat[0 + 4*2] * (this->mat[2 + 4*0] * this->mat[3 + 4*1] - this->mat[2 + 4*1] * this->mat[3 + 4*0]));
+				reversed.mat[3 + 4*2] = -invdet * (this->mat[0 + 4*0] * (this->mat[1 + 4*1] * this->mat[3 + 4*2] - this->mat[1 + 4*2] * this->mat[3 + 4*1]) + this->mat[0 + 4*1] * (this->mat[1 + 4*2] * this->mat[3 + 4*0] - this->mat[1 + 4*0] * this->mat[3 + 4*2]) + this->mat[0 + 4*2] * (this->mat[1 + 4*0] * this->mat[3 + 4*1] - this->mat[1 + 4*1] * this->mat[3 + 4*0]));
+				reversed.mat[3 + 4*3] = invdet  * (this->mat[0 + 4*0] * (this->mat[1 + 4*1] * this->mat[2 + 4*2] - this->mat[1 + 4*2] * this->mat[2 + 4*1]) + this->mat[0 + 4*1] * (this->mat[1 + 4*2] * this->mat[2 + 4*0] - this->mat[1 + 4*0] * this->mat[2 + 4*2]) + this->mat[0 + 4*2] * (this->mat[1 + 4*0] * this->mat[2 + 4*1] - this->mat[1 + 4*1] * this->mat[2 + 4*0]));
 
-
-				inv.mat[3 + 4*0] = col4.x;
-				inv.mat[3 + 4*1] = col4.y;
-				inv.mat[3 + 4*2] = col4.z;
-				inv.mat[3 + 4*3] = col4.w;
-
-
-				Vec4<T> row0(inv.mat[0 + 4*0], inv.mat[1 + 4*0], inv.mat[2 + 4*0], inv.mat[3 + 4*0]);
-
-				Vec4<T> dot0(this->mat[0+0*4] * row0.x, this->mat[0+1*4] * row0.y, this->mat[0+2*4] * row0.z, this->mat[0+3*4] * row0.w);
-				T dot1 = (dot0.x + dot0.y) + (dot0.z + dot0.w);
-
-				T ood = ((T)1) / dot1;
-
-				return inv * ood;				
+				return reversed;
 			}
 
 			astro::Mat<4, 4, T> rotate(T angle, const astro::Vec3<T> &vec) const{

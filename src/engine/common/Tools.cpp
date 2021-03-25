@@ -207,6 +207,48 @@ std::string astro::String::formatByes(int n){
 	return String::format("%.2f %s", _n, size.c_str());
 }
 
+std::string astro::String::str(float n){
+	return std::to_string(n);
+}
+
+std::string astro::String::str(double n){
+	return std::to_string(n);
+}
+
+std::string astro::String::str(uint8 n){
+	return std::to_string(n);
+}
+
+std::string astro::String::str(int8 n){
+	return std::to_string(n);
+}
+
+std::string astro::String::str(uint16 n){
+	return std::to_string(n);
+}
+
+std::string astro::String::str(int16 n){
+	return std::to_string(n);
+}
+
+std::string astro::String::str(uint32 n){
+	return std::to_string(n);
+}
+
+std::string astro::String::str(int32 n){
+	return std::to_string(n);
+}
+
+std::string astro::String::str(uint64 n){
+	return std::to_string(n);
+}
+
+std::string astro::String::str(int64 n){
+	return std::to_string(n);
+}
+
+
+
 /* 
 	MATH
 */
@@ -231,6 +273,12 @@ namespace astro {
 		float tan(float n){
 			return std::tan(n);
 		}
+		float asin(float n){
+			return std::asin(n);
+		}
+		float acos(float n){
+			return std::acos(n);
+		}		
 		float atan(float y, float x){
 			return std::atan2(y, x);
 		}

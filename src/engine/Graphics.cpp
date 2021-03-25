@@ -1,7 +1,8 @@
-#include <GLFW/glfw3.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <algorithm>
+#include <string.h>
+#include <GLFW/glfw3.h>
 
 #include "common/3rdparty/Jzon.hpp"
 #include "common/Log.hpp"
@@ -322,6 +323,7 @@ void astro::Gfx::Pipeline::remove(const std::shared_ptr<astro::Gfx::RenderObject
 
 void astro::Gfx::Pipeline::render(){
     std::unique_lock<std::mutex> lk(accesMutex);
+
     // TODO: refactor this mess
     for(auto &it : objects){
         auto &obj = it.second;
@@ -429,4 +431,19 @@ void astro::Gfx::Pipeline::render(){
     }
     lk.unlock();
 
+}
+
+astro::Gfx::Vertex::Vertex(){
+    memset(id, 0, 4 * sizeof(id[0]));
+    memset(weight, 0, 4 * sizeof(weight[0]));
+}
+
+void astro::Gfx::Vertex::setBoneData(unsigned int bId, float weight){
+    for(unsigned int i = 0; i < 4; ++i){ 
+        if(this->weight[i] == 0.0f){
+            this->id[i] = bId;
+            this->weight[i] = weight;
+            return;
+        }
+    }
 }

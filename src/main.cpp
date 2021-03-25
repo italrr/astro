@@ -26,36 +26,36 @@ int main(int argc, const char *argv[]){
 
 	auto pipeline = astro::Gfx::Pipeline();
 
-	// auto light = std::make_shared<astro::Gfx::PointLight>(astro::Gfx::PointLight());
-	// light->setPosition(astro::Vec3<float>(1.2f, 1.0f, 2.0f));
-	// light->ambient = astro::Vec3<float>(0.2f, 0.2f, 0.2f);
-	// light->diffuse = astro::Vec3<float>(0.5f, 0.5f, 0.5f);
-	// light->specular = astro::Vec3<float>(1.0f, 1.0f, 1.0f);
-	// light->constant = 1.0f;
-	// light->linear = 0.09f;
-	// light->quadratic = 0.032f;
-	// pipeline.lights.push_back(light);
+	auto light = std::make_shared<astro::Gfx::PointLight>(astro::Gfx::PointLight());
+	light->setPosition(astro::Vec3<float>(1.2f, 1.0f, 2.0f));
+	light->ambient = astro::Vec3<float>(0.2f, 0.2f, 0.2f);
+	light->diffuse = astro::Vec3<float>(0.5f, 0.5f, 0.5f);
+	light->specular = astro::Vec3<float>(1.0f, 1.0f, 1.0f);
+	light->constant = 1.0f;
+	light->linear = 0.09f;
+	light->quadratic = 0.032f;
+	pipeline.lights.push_back(light);
 
 
 
-	// auto lightspot = std::make_shared<astro::Gfx::SpotLight>(astro::Gfx::SpotLight());
-	// lightspot->ambient = astro::Vec3<float>(0.0f, 0.0f, 0.0f);
-	// lightspot->diffuse = astro::Vec3<float>(1.0f, 1.0f, 1.0f);
-	// lightspot->specular = astro::Vec3<float>(1.0f, 1.0f, 1.0f);
-	// lightspot->constant = 1.0f;
-	// lightspot->linear = 0.09f;
-	// lightspot->quadratic = 0.032f;
-	// lightspot->cutOff = astro::Math::cos(astro::Math::rads(12.5f));
-	// lightspot->outerCutOff = astro::Math::cos(astro::Math::rads(15.0f));
-	// // pipeline.lights.push_back(lightspot);
+	auto lightspot = std::make_shared<astro::Gfx::SpotLight>(astro::Gfx::SpotLight());
+	lightspot->ambient = astro::Vec3<float>(0.0f, 0.0f, 0.0f);
+	lightspot->diffuse = astro::Vec3<float>(1.0f, 1.0f, 1.0f);
+	lightspot->specular = astro::Vec3<float>(1.0f, 1.0f, 1.0f);
+	lightspot->constant = 1.0f;
+	lightspot->linear = 0.09f;
+	lightspot->quadratic = 0.032f;
+	lightspot->cutOff = astro::Math::cos(astro::Math::rads(12.5f));
+	lightspot->outerCutOff = astro::Math::cos(astro::Math::rads(15.0f));
+	pipeline.lights.push_back(lightspot);
 
 
-	auto lightdir = std::make_shared<astro::Gfx::DirLight>(astro::Gfx::DirLight());
-	lightdir->direction = astro::Vec3<float>(-0.2f, -1.0f, -0.3f);
-	lightdir->ambient = astro::Vec3<float>(0.05f, 0.05f, 0.05f);
-	lightdir->diffuse = astro::Vec3<float>(0.4f, 0.4f, 0.4f);
-	lightdir->specular = astro::Vec3<float>(0.5f, 0.5f, 0.5f);
-	pipeline.lights.push_back(lightdir);
+	// auto lightdir = std::make_shared<astro::Gfx::DirLight>(astro::Gfx::DirLight());
+	// lightdir->direction = astro::Vec3<float>(0.0f, 0.0f, 0.0f);
+	// lightdir->ambient = astro::Vec3<float>(0.05f, 0.05f, 0.05f);
+	// lightdir->diffuse = astro::Vec3<float>(0.4f, 0.4f, 0.4f);
+	// lightdir->specular = astro::Vec3<float>(0.5f, 0.5f, 0.5f);
+	// pipeline.lights.push_back(lightdir);
 
 
 	pipeline.camera.setPosition(astro::Vec3<float>(0.0f, 0.0f, 3.0f));
@@ -72,7 +72,7 @@ int main(int argc, const char *argv[]){
 		c += 0.008f;
 
 
-		model->transform->model = astro::MAT4Identity.rotate(astro::Math::rads(c), astro::Vec3<float>(1.0f, 0.7f, 0.5f)).scale(astro::Vec3<float>(0.05f, 0.05f, 0.05f));
+		model->transform->model = astro::MAT4Identity.rotate(astro::Math::rads(c), astro::Vec3<float>(0.0f, 0.5f, 0.0f)).scale(astro::Vec3<float>(0.025f, 0.025f, 0.025f)).translate(astro::Vec3<float>(0.0f, -1.5f, -5.0f));//.rotate(astro::Math::rads(c), astro::Vec3<float>(1.0f, 0.7f, 0.5f)).scale(astro::Vec3<float>(0.05f, 0.05f, 0.05f));
 		// model = model.translate(astro::Vec3<float>(0.0f, 0.0f, 0.0f));
 
 
@@ -117,7 +117,7 @@ int main(int argc, const char *argv[]){
 
 	auto indexer = astro::Core::getIndexer();
 
-	indexer->asyncFindManyByName({"b_primitive_f.glsl", "Minotaur@Walk.FBX"}, [&](std::vector<std::shared_ptr<astro::Indexing::Index>> &files){
+	indexer->asyncFindManyByName({"b_primitive_f.glsl", "nathan.fbx"}, [&](std::vector<std::shared_ptr<astro::Indexing::Index>> &files){
 		auto fileShader = files[0];
 		auto modelFile = files[1];
 

@@ -203,7 +203,7 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::generateMesh(cons
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
     // ids
     glEnableVertexAttribArray(5);
-    glVertexAttribPointer(5, 4, GL_INT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, id));
+    glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, id));
     // weights
     glEnableVertexAttribArray(6);
     glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, weight));
@@ -330,6 +330,7 @@ std::shared_ptr<astro::Result> astro::Gfx::RenderEngineOpenGL::deleteShader(int 
 }
 
 int astro::Gfx::RenderEngineOpenGL::render(){
+    currentTime = glfwGetTime();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.03f, 0.0f, 0.07f, 1.0f);
 

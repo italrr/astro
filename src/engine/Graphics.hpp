@@ -148,22 +148,10 @@
 				astro::Vec3<float> tangent;
 				astro::Vec3<float> bitangent;
 				// bone data
-				float weight[4];
 				unsigned int id[4];
-				Vertex(){
-					for (unsigned int i = 0; i < 4; i++){ 
-						weight[i] = 0.0f;
-					}
-				}
-				void setBoneData(unsigned int bId, float weight){
-					for(unsigned int i = 0; i < 4; i++){ 
-						if(this->weight[i] == 0.0f){
-							this->id[i] = bId;
-							this->weight[i] = weight;
-							return;
-						}
-					}
-				}				
+				float weight[4];
+				Vertex();
+				void setBoneData(unsigned int bId, float weight);			
             };			
 
 			struct RenderTransform {
@@ -279,6 +267,7 @@
 				void *window;
 				std::vector<std::shared_ptr<astro::Gfx::RenderLayer>> layers;
 				std::vector<std::shared_ptr<astro::Gfx::RenderObject>> objects;
+				double currentTime;
 				RenderEngine(){
 					type = RenderEngineType::Undefined;
 					window = NULL;
