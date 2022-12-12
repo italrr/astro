@@ -1,6 +1,8 @@
 astro ~> *
 ----------
 
+* THIS PROJECT IS NO LONGER BEING DEVELOPED. SEE https://github.com/italrr/cavernrush*
+
 astro is a highly concurrent 3D game engine made in C++11. It's targeted to support Vulkan and OpenGL 4.5 out of the box. 
 
 ### Objectives & philosophies applied since day one:
